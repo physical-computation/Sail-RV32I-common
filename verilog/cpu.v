@@ -174,8 +174,8 @@ module cpu(
 	
 	regfile register_files( 
 			.clk(clk), 
-			.write(mem_wb_out[2]), 
-			.wrAddr(mem_wb_out[104:100]),
+			.write(ex_mem_out[2]), //mem_wb_out[2]
+			.wrAddr(ex_mem_out[142:138]), //mem_wb_out[104:100]
 			.wrData(reg_dat_mux_out), 
 			.rdAddrA(inst_mux_out[19:15]), //if_id_out[51:47] //inst_mux_out[19:15]
 			.rdDataA(regA_out), 
@@ -222,14 +222,14 @@ module cpu(
 			.out(RegB_mux_out)
 		);
 	
-	mux2to1 RegA_AddrFwdFlush_mux( 
+	mux2to1 RegA_AddrFwdFlush_mux( //TODO cleanup
 			.input0({27'b0, if_id_out[51:47]}),
 			.input1(32'b0),
 			.select(CSRRI_signal),
 			.out(RegA_AddrFwdFlush_mux_out)
 		);
 	
-	mux2to1 RegB_AddrFwdFlush_mux( 
+	mux2to1 RegB_AddrFwdFlush_mux( //TODO cleanup
 			.input0({27'b0, if_id_out[56:52]}),
 			.input1(32'b0),
 			.select(CSRR_signal),
@@ -335,10 +335,10 @@ module cpu(
 			.out(wb_mux_out)
 		);
 	
-	mux2to1 reg_dat_mux( 
-			.input0(wb_mux_out),
-			.input1(ex_mem_out[40:9]),
-			.select(mem_wb_out[0]),
+	mux2to1 reg_dat_mux( //TODO cleanup
+			.input0(mem_regwb_mux_out), //wb_mux_out
+			.input1(id_ex_out[43:12]), //ex_mem_out[40:9]
+			.select(ex_mem_out[0]), //mem_wb_out[0]
 			.out(reg_dat_mux_out)
 		);
 	
@@ -422,6 +422,15 @@ module cpu(
 			.out(pc_mux0)
 		);
 	
+	wire[31:0] mem_regwb_mux_out; //TODO copy of wb_mux but in mem stage, move back and cleanup
+	//A copy of the writeback mux, but in MEM stage //TODO move back and cleanup
+	mux2to1 mem_regwb_mux( 
+			.input0(mem_csrr_mux_out),
+			.input1(data_mem_out),
+			.select(ex_mem_out[1]),
+			.out(mem_regwb_mux_out)
+		);
+	
 	//OR gate assignments, used for flushing
 	assign decode_ctrl_mux_sel = pcsrc | mistake_trigger;
 	assign inst_mux_sel = pcsrc | predict | mistake_trigger | Fence_signal;
@@ -435,6 +444,10 @@ module cpu(
 	assign data_mem_memwrite = ex_cont_mux_out[4];
 	assign data_mem_memread = ex_cont_mux_out[5];
 	assign data_mem_sign_mask = id_ex_out[150:147];
+	
+	//TODO for debugging, remove if unused
+	wire[31:0] mem_instr_addr;
+	assign mem_instr_addr = ex_mem_out[40:9];
 	
 endmodule
 	

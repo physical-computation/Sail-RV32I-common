@@ -11,6 +11,9 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	
 	reg[31:0] regfile[31:0];
 	
+	reg [4:0] rdAddrA_buf;
+	reg [4:0] rdAddrB_buf;
+	
 	/*
 	//registers for forwarding
 	reg[4:0] rdAddrA_clocked;
@@ -58,11 +61,15 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	
 	always @(posedge clk) begin
 		if(write==1'b1 && wrAddr!=5'b0) begin
-			regfile[wrAddr] <= wrData;
+			regfile[wrAddr] = wrData;
 		end
-		rdDataA <= regfile[rdAddrA];
-		rdDataB <= regfile[rdAddrB];
-		//led_test <= regfile[5'd15];
+		rdAddrA_buf <= rdAddrA;
+		rdAddrB_buf <= rdAddrB;
+	end
+	
+	always @(negedge clk) begin
+		rdDataA <= regfile[rdAddrA_buf];
+		rdDataB <= regfile[rdAddrB_buf];
 	end
 	
 	/*
