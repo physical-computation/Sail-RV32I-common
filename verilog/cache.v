@@ -19,11 +19,8 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	parameter IDLE = 0;
 	parameter READ_BUFFER = 1;
 	parameter CACHE_MISS = 2;
-	parameter MODIFY = 3;
-	parameter READ = 4;
-	parameter EXTEND = 5;
-	parameter WRITE = 6;
-	parameter CLK_EN = 7;
+	parameter READ = 3;
+	parameter WRITE = 4;
 	
 	//line buffer
 	reg[255:0] line_buf;
@@ -287,10 +284,10 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 				if(tag[addr_index] == addr_tag && valid[addr_index] == 1) begin //cache hit
 					line_buf <= data_cache[addr_index];
 					if(memread_buf==1'b1) begin
-						state <= EXTEND;
+						state <= READ;
 					end
 					else if(memwrite_buf == 1'b1) begin
-						state <= MODIFY;
+						state <= WRITE;
 					end
 				end
 				else begin //cache miss
@@ -303,29 +300,16 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 				valid[addr_index] <= 1;
 				state <= READ_BUFFER;
 			end
-			
-			EXTEND: begin // 1 cycle for combinational logic to settle
-				state <= READ;
-			end
-			
+
 			READ: begin
-				//clk_stall <= 0;
+				clk_stall <= 0;
 				read_data <= read_buf;
-				state <= CLK_EN;
-			end
-			
-			MODIFY: begin // 1 cycle for combinational logic to settle
-				state <= WRITE;
+				state <= IDLE;
 			end
 			
 			WRITE: begin
-				//clk_stall <= 0;
-				data_cache[addr_index] <= {w7, w6, w5, w4, w3, w2, w1, w0};
-				state <= CLK_EN;
-			end
-			
-			CLK_EN: begin
 				clk_stall <= 0;
+				data_cache[addr_index] <= {w7, w6, w5, w4, w3, w2, w1, w0};
 				state <= IDLE;
 			end
 			

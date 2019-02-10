@@ -61,16 +61,16 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	
 	always @(posedge clk) begin
 		if(write==1'b1 && wrAddr!=5'b0) begin
-			regfile[wrAddr] = wrData;
+			regfile[wrAddr] <= wrData;
 		end
-		rdAddrA_buf <= rdAddrA;
-		rdAddrB_buf <= rdAddrB;
+		rdDataA <= regfile[rdAddrA];
+		rdDataB <= regfile[rdAddrB];
 	end
 	
-	always @(negedge clk) begin
+	/*always @(negedge clk) begin
 		rdDataA <= regfile[rdAddrA_buf];
 		rdDataB <= regfile[rdAddrB_buf];
-	end
+	end*/
 	
 	/*
 	//Block RAM interface
