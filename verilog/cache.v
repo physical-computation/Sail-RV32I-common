@@ -1,6 +1,6 @@
 //Data cache
 
-module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, led, clk_stall);
+module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, led, clk_stall, instr_cache_busy);
 	input clk;
 	input[31:0] addr;
 	input[31:0] write_data;
@@ -9,6 +9,7 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	output reg[31:0] read_data;
 	output [7:0] led;
 	output reg clk_stall; //Sets the clock high
+	input instr_cache_busy;
 	
 	//led register
 	reg [31:0] led_reg;
@@ -266,54 +267,57 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	end
 	
 	always @(posedge clk) begin
-		case (state)
-			IDLE: begin
-				clk_stall <= 0;
-				memread_buf <= memread;
-				memwrite_buf <= memwrite;
-				write_data_buffer <= write_data;
-				addr_buf <= addr;
-				sign_mask_buf <= sign_mask;
-				if(memwrite==1'b1 || memread==1'b1) begin
+		if(instr_cache_busy != 1'b1) begin
+			case (state)
+				IDLE: begin
+					clk_stall <= 0;
+					memread_buf <= memread;
+					memwrite_buf <= memwrite;
+					write_data_buffer <= write_data;
+					addr_buf <= addr;
+					sign_mask_buf <= sign_mask;
+					line_buf <= data_cache[addr[7:5]];
+					if(memwrite==1'b1 || memread==1'b1) begin
+						state <= READ_BUFFER;
+						clk_stall <= 1;
+					end 
+				end
+				
+				READ_BUFFER: begin
+					if(tag[addr_index] == addr_tag && valid[addr_index] == 1) begin //cache hit
+						line_buf <= data_cache[addr_index];
+						if(memread_buf==1'b1) begin
+							state <= READ;
+						end
+						else if(memwrite_buf == 1'b1) begin
+							state <= WRITE;
+						end
+					end
+					else begin //cache miss
+						state <= CACHE_MISS;
+					end
+				end
+				
+				CACHE_MISS: begin
+					tag[addr_index] <= addr_tag;
+					valid[addr_index] <= 1;
 					state <= READ_BUFFER;
-					clk_stall <= 1;
-				end 
-			end
-			
-			READ_BUFFER: begin
-				if(tag[addr_index] == addr_tag && valid[addr_index] == 1) begin //cache hit
-					line_buf <= data_cache[addr_index];
-					if(memread_buf==1'b1) begin
-						state <= READ;
-					end
-					else if(memwrite_buf == 1'b1) begin
-						state <= WRITE;
-					end
 				end
-				else begin //cache miss
-					state <= CACHE_MISS;
-				end
-			end
-			
-			CACHE_MISS: begin
-				tag[addr_index] <= addr_tag;
-				valid[addr_index] <= 1;
-				state <= READ_BUFFER;
-			end
 
-			READ: begin
-				clk_stall <= 0;
-				read_data <= read_buf;
-				state <= IDLE;
-			end
-			
-			WRITE: begin
-				clk_stall <= 0;
-				data_cache[addr_index] <= {w7, w6, w5, w4, w3, w2, w1, w0};
-				state <= IDLE;
-			end
-			
-		endcase
+				READ: begin
+					clk_stall <= 0;
+					read_data <= read_buf;
+					state <= IDLE;
+				end
+				
+				WRITE: begin
+					clk_stall <= 0;
+					data_cache[addr_index] <= {w7, w6, w5, w4, w3, w2, w1, w0};
+					state <= IDLE;
+				end
+				
+			endcase
+		end
 	end
 	
 	//test led

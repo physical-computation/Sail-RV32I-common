@@ -9,7 +9,8 @@ module cpu(
 			data_mem_WrData, 
 			data_mem_memwrite, 
 			data_mem_memread,
-			data_mem_sign_mask
+			data_mem_sign_mask,
+			pc_in
 		);
 	
 	//Input Clock
@@ -26,6 +27,7 @@ module cpu(
 	output data_mem_memwrite; 
 	output data_mem_memread;
 	output[3:0] data_mem_sign_mask;
+	output[31:0] pc_in;
 	
 	//Program Counter
 	wire[31:0] pc_mux0;
