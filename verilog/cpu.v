@@ -9,8 +9,7 @@ module cpu(
 			data_mem_WrData, 
 			data_mem_memwrite, 
 			data_mem_memread,
-			data_mem_sign_mask,
-			pc_in
+			data_mem_sign_mask
 		);
 	
 	//Input Clock
@@ -27,7 +26,6 @@ module cpu(
 	output data_mem_memwrite; 
 	output data_mem_memread;
 	output[3:0] data_mem_sign_mask;
-	output[31:0] pc_in;
 	
 	//Program Counter
 	wire[31:0] pc_mux0;
@@ -438,7 +436,7 @@ module cpu(
 	assign inst_mux_sel = pcsrc | predict | mistake_trigger | Fence_signal;
 	
 	//Instruction Memory Connections
-	assign inst_mem_in = pc_out;
+	assign inst_mem_in = pc_in;
 	
 	//Data Memory Connections
 	assign data_mem_addr = lui_result;
@@ -446,6 +444,7 @@ module cpu(
 	assign data_mem_memwrite = ex_cont_mux_out[4];
 	assign data_mem_memread = ex_cont_mux_out[5];
 	assign data_mem_sign_mask = id_ex_out[150:147];
+	
 	
 	//TODO for debugging, remove if unused
 	wire[31:0] mem_instr_addr;

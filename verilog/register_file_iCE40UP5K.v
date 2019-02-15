@@ -4,9 +4,9 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	input [4:0] wrAddr;
 	input [31:0] wrData;
 	input [4:0] rdAddrA;
-	output[31:0] rdDataA;
+	output reg[31:0] rdDataA;
 	input [4:0] rdAddrB;
-	output[31:0] rdDataB;
+	output reg[31:0] rdDataB;
 	//output[31:0] led_test; //test led
 	
 	reg[31:0] regfile[31:0];
