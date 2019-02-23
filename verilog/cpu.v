@@ -436,7 +436,7 @@ module cpu(
 	assign inst_mux_sel = pcsrc | predict | mistake_trigger | Fence_signal;
 	
 	//Instruction Memory Connections
-	assign inst_mem_in = pc_in;
+	assign inst_mem_in = pc_out;
 	
 	//Data Memory Connections
 	assign data_mem_addr = lui_result;

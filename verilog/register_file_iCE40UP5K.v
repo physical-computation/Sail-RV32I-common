@@ -4,15 +4,22 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	input [4:0] wrAddr;
 	input [31:0] wrData;
 	input [4:0] rdAddrA;
-	output reg[31:0] rdDataA;
+	output [31:0] rdDataA;
 	input [4:0] rdAddrB;
-	output reg[31:0] rdDataB;
+	output [31:0] rdDataB;
 	//output[31:0] led_test; //test led
 	
 	reg[31:0] regfile[31:0];
 	
 	reg [4:0] rdAddrA_buf;
 	reg [4:0] rdAddrB_buf;
+	
+	//registers for forwarding
+	reg[31:0] regDatA;
+	reg[31:0] regDatB;
+	reg[31:0] wrAddr_buf;
+	reg[31:0] wrData_buf;
+	reg write_buf;
 	
 	/*
 	//registers for forwarding
@@ -63,9 +70,20 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 		if(write==1'b1 && wrAddr!=5'b0) begin
 			regfile[wrAddr] <= wrData;
 		end
-		rdDataA <= regfile[rdAddrA];
-		rdDataB <= regfile[rdAddrB];
+		wrAddr_buf <= wrAddr;
+		write_buf <= write;
+		wrData_buf <= wrData;
+		rdAddrA_buf <= rdAddrA;
+		rdAddrB_buf <= rdAddrB;
+		regDatA <= regfile[rdAddrA];
+		regDatB <= regfile[rdAddrB];
+		//rdDataA <= ((wrAddr==rdAddrA) & write & wrAddr!=32'b0) ? wrData : regfile[rdAddrA];
+		//rdDataB <= ((wrAddr==rdAddrB) & write & wrAddr!=32'b0) ? wrData : regfile[rdAddrB];
 	end
+
+	
+	assign rdDataA = ((wrAddr_buf==rdAddrA_buf) & write_buf & wrAddr_buf!=32'b0) ? wrData_buf : regDatA;
+	assign rdDataB = ((wrAddr_buf==rdAddrB_buf) & write_buf & wrAddr_buf!=32'b0) ? wrData_buf : regDatB;
 	
 	/*always @(negedge clk) begin
 		rdDataA <= regfile[rdAddrA_buf];
