@@ -43,17 +43,19 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	reg[3:0] sign_mask_buf;
 	
 	//block memory registers
-	reg[255:0] data_block[0:7];
-	reg[5:0] tag[0:7];
-	reg valid[0:7];
+	reg[255:0] data_block[0:127];
+	//reg[5:0] tag[0:7];
+	//reg valid[0:7];
 	
 	//wire assignments
 	wire[5:0] addr_buf_tag;
 	wire[2:0] addr_buf_index;
+	wire[8:0] addr_buf_block_addr;
 	wire[2:0] addr_buf_word_offset;
 	wire[1:0] addr_buf_byte_offset;
 	assign addr_buf_tag = addr_buf[13:8];
 	assign addr_buf_index = addr_buf[7:5];
+	assign addr_buf_block_addr = addr_buf[13:5];
 	assign addr_buf_word_offset = addr_buf[4:2];
 	assign addr_buf_byte_offset = addr_buf[1:0];
 	
@@ -262,7 +264,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	//BRAM implementation
 	
 	initial begin
-		//$readmemh("verilog/data.hex", datamem);
+		$readmemh("verilog/data.hex", data_block);
 		clk_stall = 0;
 	end
 	
@@ -275,7 +277,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 				write_data_buffer <= write_data;
 				addr_buf <= addr;
 				sign_mask_buf <= sign_mask;
-				line_buf <= data_block[addr[7:5]];
+				line_buf <= data_block[addr[13:5]];
 				if(memwrite==1'b1 || memread==1'b1) begin
 					state <= READ_BUFFER;
 					clk_stall <= 1;
@@ -283,7 +285,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 			end
 			
 			READ_BUFFER: begin
-				line_buf <= data_block[addr_buf_index];
+				line_buf <= data_block[addr_buf_block_addr];
 				if(memread_buf==1'b1) begin
 					state <= READ;
 				end
@@ -300,7 +302,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 			
 			WRITE: begin
 				clk_stall <= 0;
-				data_block[addr_buf_index] <= {w7, w6, w5, w4, w3, w2, w1, w0};
+				data_block[addr_buf_block_addr] <= {w7, w6, w5, w4, w3, w2, w1, w0};
 				state <= IDLE;
 			end
 			
