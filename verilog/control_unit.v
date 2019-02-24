@@ -1,18 +1,18 @@
 //RISC-V CONTROL UNIT
 module control(
-	opcode, 
-	MemtoReg, 
-	RegWrite, 
-	MemWrite, 
-	MemRead,
-	Branch,
-	ALUSrc,
-	Jump,
-	Jalr,
-	Lui,
-	Auipc,
-	Fence,
-	CSRR
+		opcode, 
+		MemtoReg, 
+		RegWrite, 
+		MemWrite, 
+		MemRead,
+		Branch,
+		ALUSrc,
+		Jump,
+		Jalr,
+		Lui,
+		Auipc,
+		Fence,
+		CSRR
 	);
 	
 	input[6:0] opcode;

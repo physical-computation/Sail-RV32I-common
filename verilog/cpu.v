@@ -445,10 +445,5 @@ module cpu(
 	assign data_mem_memread = ex_cont_mux_out[5];
 	assign data_mem_sign_mask = id_ex_out[150:147];
 	
-	
-	//TODO for debugging, remove if unused
-	wire[31:0] mem_instr_addr;
-	assign mem_instr_addr = ex_mem_out[40:9];
-	
 endmodule
 	

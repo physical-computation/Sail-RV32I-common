@@ -42,12 +42,11 @@ module alu(ALUctl, A, B, ALUOut, Branch_Enable);
 		case(ALUctl[6:4])
 			3'b001: Branch_Enable = (ALUOut==0);
 			3'b010: Branch_Enable = !(ALUOut==0);
-			3'b011: Branch_Enable = ($signed(A)<$signed(B));//(ALUOut[31]);
+			3'b011: Branch_Enable = ($signed(A)<$signed(B));
 			3'b100: Branch_Enable = ($signed(A)>=$signed(B));
 			3'b101: Branch_Enable = ($unsigned(A) < $unsigned(B));
 			3'b110: Branch_Enable = ($unsigned(A) >= $unsigned(B));
 			default: Branch_Enable = 1'b0;
 		endcase
 	end
-	//assign Zero = (ALUOut==0);
 endmodule

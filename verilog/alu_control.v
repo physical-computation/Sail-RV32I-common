@@ -40,9 +40,9 @@ module ALUControl(FuncCode, ALUCtl, Opcode);
 					3'b101: 
 						ALUCtl = 7'b1000110; //BGE conditions
 					3'b110: 
-						ALUCtl = 7'b1010110; //BLTU conditions untested
+						ALUCtl = 7'b1010110; //BLTU conditions
 					3'b111: 
-						ALUCtl = 7'b1100110; //BGEU conditions untested
+						ALUCtl = 7'b1100110; //BGEU conditions
 					default  : 
 						ALUCtl = 7'b0001111; //Should not happen
 				endcase
@@ -96,7 +96,7 @@ module ALUControl(FuncCode, ALUCtl, Opcode);
 							1'b0: 
 								ALUCtl = 7'b0000011; //SRLI
 							1'b1: 
-								ALUCtl = 7'b0000100; //SRAI untested
+								ALUCtl = 7'b0000100; //SRAI
 							default: 
 								ALUCtl = 7'b0001111; //Should not happen
 						endcase

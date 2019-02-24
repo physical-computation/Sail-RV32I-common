@@ -13,13 +13,12 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	//led register
 	reg [31:0] led_reg;
 	
-	//state
+	//current state
 	integer state = 0;
 	
+	//possible states
 	parameter IDLE = 0;
 	parameter READ_BUFFER = 1;
-	//parameter SETUP_READ = 2;
-	//parameter SETUP_WRITE = 3;
 	parameter READ = 2;
 	parameter WRITE = 3;
 	
@@ -39,13 +38,11 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	//buffer to store address
 	reg[31:0] addr_buf;
 	
-	//sign_mas buffer
+	//sign_mask buffer
 	reg[3:0] sign_mask_buf;
 	
 	//block memory registers
 	reg[255:0] data_block[0:127];
-	//reg[5:0] tag[0:7];
-	//reg valid[0:7];
 	
 	//wire assignments
 	wire[5:0] addr_buf_tag;
