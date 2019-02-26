@@ -9,13 +9,13 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	output reg[31:0] read_data;
 	output [7:0] led;
 	output reg clk_stall; //Sets the clock high
-	
+
 	//led register
 	reg [31:0] led_reg;
-	
+
 	//state
 	integer state = 0;
-	
+
 	parameter IDLE = 0;
 	parameter READ_BUFFER = 1;
 	parameter CACHE_MISS = 2;
@@ -23,31 +23,31 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	parameter READ = 4;
 	parameter EXTEND = 5;
 	parameter WRITE = 6;
-	
+
 	//line buffer
 	reg[255:0] line_buf;
-	
+
 	//read buffer
 	reg[31:0] read_buf;
-	
+
 	//buffer to identify read or write operation
 	reg memread_buf;
 	reg memwrite_buf;
-	
+
 	//buffers to store write data
 	reg[31:0] write_data_buffer;
-	
+
 	//buffer to store address
 	reg[31:0] addr_buf;
-	
+
 	//sign_mas buffer
 	reg[3:0] sign_mask_buf;
-	
+
 	//cache registers
 	reg[255:0] data_cache[0:7];
 	reg[5:0] tag[0:7];
 	reg valid[0:7];
-	
+
 	//wire assignments
 	wire[5:0] addr_tag;
 	wire[2:0] addr_index;
@@ -57,13 +57,13 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	assign addr_index = addr_buf[7:5];
 	assign addr_word_offset = addr_buf[4:2];
 	assign addr_byte_offset = addr_buf[1:0];
-	
+
 	//regs for multiplexer output
 	reg[7:0] buf0;
 	reg[7:0] buf1;
 	reg[7:0] buf2;
 	reg[7:0] buf3;
-	
+
 	//combinational logic implementing a multiplexer to select word from block
 	//put into 4 byte buffers
 	always @(*) begin
@@ -74,49 +74,49 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 				buf2 <= line_buf[23:16];
 				buf3 <= line_buf[31:24];
 			end
-			
+
 			3'b001: begin
 				buf0 <= line_buf[39:32];
 				buf1 <= line_buf[47:40];
 				buf2 <= line_buf[55:48];
 				buf3 <= line_buf[63:56];
 			end
-			
+
 			3'b010: begin
 				buf0 <= line_buf[71:64];
 				buf1 <= line_buf[79:72];
 				buf2 <= line_buf[87:80];
 				buf3 <= line_buf[95:88];
 			end
-			
+
 			3'b011: begin
 				buf0 <= line_buf[103:96];
 				buf1 <= line_buf[111:104];
 				buf2 <= line_buf[119:112];
 				buf3 <= line_buf[127:120];
 			end
-			
+
 			3'b100: begin
 				buf0 <= line_buf[135:128];
 				buf1 <= line_buf[143:136];
 				buf2 <= line_buf[151:144];
 				buf3 <= line_buf[159:152];
 			end
-			
+
 			3'b101: begin
 				buf0 <= line_buf[167:160];
 				buf1 <= line_buf[175:168];
 				buf2 <= line_buf[183:176];
 				buf3 <= line_buf[191:184];
 			end
-			
+
 			3'b110: begin
 				buf0 <= line_buf[199:192];
 				buf1 <= line_buf[207:200];
 				buf2 <= line_buf[215:208];
 				buf3 <= line_buf[223:216];
 			end
-			
+
 			3'b111: begin
 				buf0 <= line_buf[231:224];
 				buf1 <= line_buf[239:232];
@@ -125,7 +125,7 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 			end
 		endcase
 	end
-	
+
 	/*
 	*combinational logic to modify line cache for writing
 	*/
@@ -146,7 +146,7 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	assign wdec_sig5 = (addr_word_offset[2]) & (~addr_word_offset[1]) & (addr_word_offset[0]);
 	assign wdec_sig6 = (addr_word_offset[2]) & (addr_word_offset[1]) & (~addr_word_offset[0]);
 	assign wdec_sig7 = (addr_word_offset[2]) & (addr_word_offset[1]) & (addr_word_offset[0]);
-	
+
 	//byte select decoder
 	wire bdec_sig0;
 	wire bdec_sig1;
@@ -156,7 +156,7 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	assign bdec_sig1 = (~addr_byte_offset[1]) & (addr_byte_offset[0]);
 	assign bdec_sig2 = (addr_byte_offset[1]) & (~addr_byte_offset[0]);
 	assign bdec_sig3 = (addr_byte_offset[1]) & (addr_byte_offset[0]);
-	
+
 	//Constructing the word to be replaced
 	//For write byte
 	wire[7:0] byte_r0;
@@ -167,13 +167,13 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	assign byte_r1 = (bdec_sig1==1'b1)?write_data_buffer[7:0]:buf1;
 	assign byte_r2 = (bdec_sig2==1'b1)?write_data_buffer[7:0]:buf2;
 	assign byte_r3 = (bdec_sig3==1'b1)?write_data_buffer[7:0]:buf3;
-	
+
 	//For write halfword
 	wire[15:0] halfword_r0;
 	wire[15:0] halfword_r1;
 	assign halfword_r0 = (addr_byte_offset[1]==1'b1)?{buf1, buf0}:write_data_buffer[15:0];
 	assign halfword_r1 = (addr_byte_offset[1]==1'b1)?write_data_buffer[15:0]:{buf3, buf2};
-	
+
 	reg[31:0] replacement_word;
 	always @(*) begin
 		case (sign_mask_buf[2:0])
@@ -188,7 +188,7 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 			end
 		endcase
 	end
-	
+
 	//Multiplexers that select which word is replaced
 	wire[31:0] w0;
 	wire[31:0] w1;
@@ -206,7 +206,7 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 	assign w5 = (wdec_sig5==1'b1)?replacement_word:line_buf[191:160];
 	assign w6 = (wdec_sig6==1'b1)?replacement_word:line_buf[223:192];
 	assign w7 = (wdec_sig7==1'b1)?replacement_word:line_buf[255:224];
-	
+
 	/*
 	* Combinational logic for generating 32-bit read data
 	*/
@@ -228,7 +228,7 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 					end
 				endcase
 			end
-			
+
 			3'b011: begin //Halfword
 				case(addr_byte_offset)
 					2'b00: begin
@@ -239,27 +239,27 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 					end
 				endcase
 			end
-			
+
 			3'b111: begin //Word
 				read_buf = {buf3, buf2, buf1, buf0};
 			end
 		endcase
 	end
-	
+
 	//LED register interfacing with I/O
 	always @(posedge clk) begin
 		if(memwrite == 1'b1 && addr == 32'h2000) begin
 			led_reg <= write_data;
 		end
 	end
-	
+
 	//BRAM implementation
-	
+
 	initial begin
 		//$readmemh("verilog/data.hex", datamem);
 		clk_stall = 0;
 	end
-	
+
 	always @(posedge clk) begin
 		case (state)
 			IDLE: begin
@@ -272,9 +272,9 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 				if(memwrite==1'b1 || memread==1'b1) begin
 					state <= READ_BUFFER;
 					clk_stall <= 1;
-				end 
+				end
 			end
-			
+
 			READ_BUFFER: begin
 				if(tag[addr_index] == addr_tag && valid[addr_index] == 1) begin //cache hit
 					line_buf <= data_cache[addr_index];
@@ -289,27 +289,27 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 					state <= CACHE_MISS;
 				end
 			end
-			
+
 			CACHE_MISS: begin
 				tag[addr_index] = addr_tag;
 				valid[addr_index] = 1;
 				state <= READ_BUFFER;
 			end
-			
+
 			EXTEND: begin // 1 cycle for combinational logic to settle
 				state <= READ;
 			end
-			
+
 			READ: begin
 				read_data = read_buf;
 				state <= IDLE;
 				clk_stall <= 0;
 			end
-			
+
 			MODIFY: begin // 1 cycle for combinational logic to settle
 				state <= WRITE;
 			end
-			
+
 			WRITE: begin
 				data_cache[addr_index] = {w7, w6, w5, w4, w3, w2, w1, w0};
 				state <= IDLE;
@@ -317,8 +317,8 @@ module cache (clk, addr, write_data, memwrite, memread, sign_mask, read_data, le
 			end
 		endcase
 	end
-		
+
 	//test led
 	assign led = led_reg[7:0];
-	
+
 endmodule

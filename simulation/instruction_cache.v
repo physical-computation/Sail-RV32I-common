@@ -8,21 +8,21 @@ module instruction_cache(clk, addr, out, clk_stall, mem_block_addr, readmem, new
 	output reg readmem;
 	input[255:0] new_line;
 	input data_cache_busy;
-	
+
 	//instruction cache
 	reg[255:0] instr_cache[0:7];
 	reg[5:0] tag[0:7];
 	reg valid[0:7];
-	
+
 	//states
 	parameter INIT = 3;
 	parameter IDLE = 0;
 	parameter CACHE_MISS = 1;
 	parameter READ_BLOCK = 2;
-	
+
 	//current state
 	integer state;
-	
+
 	//split address signal into tag, index and offset
 	wire[5:0] addr_tag;
 	wire[2:0] addr_index;
@@ -30,10 +30,10 @@ module instruction_cache(clk, addr, out, clk_stall, mem_block_addr, readmem, new
 	assign addr_tag = addr[13:8];
 	assign addr_index = addr[7:5];
 	assign addr_word_offset = addr[4:2];
-	
+
 	//address buffer register
 	reg[31:0] addr_buf;
-	
+
 	//split address buffer signal into tag, index and offset
 	wire[5:0] addr_buf_tag;
 	wire[2:0] addr_buf_index;
@@ -41,50 +41,50 @@ module instruction_cache(clk, addr, out, clk_stall, mem_block_addr, readmem, new
 	assign addr_buf_tag = addr_buf[13:8];
 	assign addr_buf_index = addr_buf[7:5];
 	assign addr_buf_word_offset = addr_buf[4:2];
-	
+
 	//instruction word buffer
 	reg[31:0] instr_buf;
-	
+
 	//line buffer
 	reg[255:0] line_buf;
-	
+
 	//combinational logic to select word from block
 	always @(*) begin
 		case (addr_buf_word_offset)
 			3'b000: begin
 				instr_buf = line_buf[31:0];
 			end
-			
+
 			3'b001: begin
 				instr_buf = line_buf[63:32];
 			end
-			
+
 			3'b010: begin
 				instr_buf = line_buf[95:64];
 			end
-			
+
 			3'b011: begin
 				instr_buf = line_buf[127:96];
 			end
-			
+
 			3'b100: begin
 				instr_buf = line_buf[159:128];
 			end
-			
+
 			3'b101: begin
 				instr_buf = line_buf[191:160];
 			end
-			
+
 			3'b110: begin
 				instr_buf = line_buf[223:192];
 			end
-			
+
 			3'b111: begin
 				instr_buf = line_buf[255:224];
 			end
 		endcase
-	end	
-	
+	end
+
 	integer i;
 	initial begin
 		//$readmemh("verilog/program.hex",instruction_memory);
@@ -97,11 +97,11 @@ module instruction_cache(clk, addr, out, clk_stall, mem_block_addr, readmem, new
 			tag[i] = 0;
 		end
 	end
-	
+
 	always @(posedge clk) begin
 		if(~data_cache_busy || readmem) begin
 			case(state)
-			
+
 				IDLE: begin
 					clk_stall <= 0;
 					addr_buf <= addr;
@@ -114,7 +114,7 @@ module instruction_cache(clk, addr, out, clk_stall, mem_block_addr, readmem, new
 						state <= CACHE_MISS;
 					end
 				end
-				
+
 				CACHE_MISS: begin
 					valid[addr_buf_index] <= 1;
 					//readmem <= 1;
@@ -122,7 +122,7 @@ module instruction_cache(clk, addr, out, clk_stall, mem_block_addr, readmem, new
 					//mem_block_addr <= addr_buf[13:5];
 					state <= READ_BLOCK;
 				end
-				
+
 				READ_BLOCK: begin
 					instr_cache[addr_buf_index] <= new_line;
 					line_buf <= new_line;
@@ -130,14 +130,14 @@ module instruction_cache(clk, addr, out, clk_stall, mem_block_addr, readmem, new
 					clk_stall <= 0;
 					state <= IDLE;
 				end
-				
+
 				default: begin
 					//do nothing
 				end
 			endcase
 		end
-	end	
-	
+	end
+
 	assign out = instr_buf;
-	
+
 endmodule

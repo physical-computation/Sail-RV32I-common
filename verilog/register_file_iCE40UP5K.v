@@ -8,56 +8,56 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	input [4:0] rdAddrB;
 	output [31:0] rdDataB;
 	//output[31:0] led_test; //test led
-	
+
 	reg[31:0] regfile[31:0];
-	
+
 	reg [4:0] rdAddrA_buf;
 	reg [4:0] rdAddrB_buf;
-	
+
 	//registers for forwarding
 	reg[31:0] regDatA;
 	reg[31:0] regDatB;
 	reg[31:0] wrAddr_buf;
 	reg[31:0] wrData_buf;
 	reg write_buf;
-	
+
 	/*
 	//registers for forwarding
 	reg[4:0] rdAddrA_clocked;
 	reg[4:0] rdAddrB_clocked;
 	reg[31:0] regDatA;
 	reg[31:0] regDatB;
-	
-	
+
+
 	initial begin
 		regfile[0] = 32'b0;	//register x0 = 0
 	end
-	
+
 	always @(posedge clk) begin
 		rdAddrA_clocked <= rdAddrA;
 		rdAddrB_clocked <= rdAddrB;
 	end
-	
+
 	always @(posedge clk) begin
 		regDatA <= regfile[rdAddrA];
 		regDatB <= regfile[rdAddrB];
 		led_test <= regfile[5'd15];
 	end
-	
+
 	always @(negedge clk) begin
 		if (write && wrAddr!=32'b0) begin
 			regfile[wrAddr] <= wrData;
 		end
 	end
-	
+
 	assign rdDataA = ((wrAddr==rdAddrA_clocked) & write & wrAddr!=32'b0) ? wrData : regDatA;
 	assign rdDataB = ((wrAddr==rdAddrB_clocked) & write & wrAddr!=32'b0) ? wrData : regDatB;
 	*/
-	
+
 	initial begin
 		regfile[0] = 32'b0;
 	end
-	
+
 	/*generate
 		genvar i;
 		for (i = 0; i < 32; i = i+1) begin
@@ -65,7 +65,7 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 				regfile[i] <= 0;
 		end
   endgenerate*/
-	
+
 	always @(posedge clk) begin
 		if(write==1'b1 && wrAddr!=5'b0) begin
 			regfile[wrAddr] <= wrData;
@@ -81,32 +81,32 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 		//rdDataB <= ((wrAddr==rdAddrB) & write & wrAddr!=32'b0) ? wrData : regfile[rdAddrB];
 	end
 
-	
+
 	assign rdDataA = ((wrAddr_buf==rdAddrA_buf) & write_buf & wrAddr_buf!=32'b0) ? wrData_buf : regDatA;
 	assign rdDataB = ((wrAddr_buf==rdAddrB_buf) & write_buf & wrAddr_buf!=32'b0) ? wrData_buf : regDatB;
-	
+
 	/*always @(negedge clk) begin
 		rdDataA <= regfile[rdAddrA_buf];
 		rdDataB <= regfile[rdAddrB_buf];
 	end*/
-	
+
 	/*
 	//Block RAM interface
 	wire[15:0] rdDataA_MSW;
 	wire[15:0] rdDataA_LSW;
-	
+
 	wire[15:0] rdDataB_MSW;
 	wire[15:0] rdDataB_LSW;
-	
+
 	wire[15:0] ledVal_MSW;
 	wire[15:0] ledVal_LSW;
-	
+
 	wire RAM_write;
-	
+
 	wire[7:0] led_read_addr;
 	assign led_read_addr = 8'd15;
 	assign RAM_write = (wrAddr == 32'b0) ? 1'b0 : write;
-	
+
 	//data A block MSW
 	SB_RAM40_4K dataA_MSW (
 		.RDATA(rdDataA_MSW),
@@ -123,7 +123,7 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	);
 	defparam dataA_MSW.READ_MODE=0;
 	defparam dataA_MSW.WRITE_MODE=0;
-	
+
 	//data A block LSW
 	SB_RAM40_4K dataA_LSW (
 		.RDATA(rdDataA_LSW),
@@ -140,8 +140,8 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	);
 	defparam dataA_LSW.READ_MODE=0;
 	defparam dataA_LSW.WRITE_MODE=0;
-	
-	
+
+
 	//data B block MSW
 	SB_RAM40_4K dataB_MSW (
 		.RDATA(rdDataB_MSW),
@@ -158,7 +158,7 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	);
 	defparam dataB_MSW.READ_MODE=0;
 	defparam dataB_MSW.WRITE_MODE=0;
-	
+
 	//data B block LSW
 	SB_RAM40_4K dataB_LSW (
 		.RDATA(rdDataB_LSW),
@@ -175,9 +175,9 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	);
 	defparam dataB_LSW.READ_MODE=0;
 	defparam dataB_LSW.WRITE_MODE=0;
-	
-	
-	
+
+
+
 	//ledVal block MSW
 	SB_RAM40_4K ledVal_MSW_inst (
 		.RDATA(ledVal_MSW),
@@ -194,7 +194,7 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	);
 	defparam ledVal_MSW_inst.READ_MODE=0;
 	defparam ledVal_MSW_inst.WRITE_MODE=0;
-	
+
 	//ledVal block LSW
 	SB_RAM40_4K ledVal_LSW_inst (
 		.RDATA(ledVal_LSW),
@@ -211,11 +211,11 @@ module regfile(clk, write, wrAddr, wrData, rdAddrA, rdDataA, rdAddrB, rdDataB/*,
 	);
 	defparam ledVal_LSW_inst.READ_MODE=0;
 	defparam ledVal_LSW_inst.WRITE_MODE=0;
-	
+
 	//signal assignments
 	assign rdDataA = {rdDataA_MSW, rdDataA_LSW};
 	assign rdDataB = {rdDataB_MSW, rdDataB_LSW};
 	assign led_test = {ledVal_MSW, ledVal_LSW};//test led
 	*/
-	
+
 endmodule
