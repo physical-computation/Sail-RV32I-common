@@ -1,23 +1,8 @@
-# RV32I_iCE40
+# Common verilog source for an RV32I processor.
 
-## Step 1 - Cloning the repository
-To clone the respository, use: <br >
- `$ git clone --recursive git@github.com:physical-computation/RV32I_iCE40.git`<br >
+RV32I_common contains sources files useful for building or customising small RISC-V processors.
+These files are currently used by [narvie](https://github.com/physical-computation/narvie) for it's processor.
 
-## Step 2 - Building the toolchain
-`cd` into the directory and then into `Sunflower-toolchain`, edit `conf/setup.conf` and edit the setup appropriately. Afterwards, `cd` into `tools/source` and run `./downloads.sh`, which will populate the folder with distributions of GCC, Newlib and Binutils.<br><br>
-After downloading, `cd` back to `Sunflower-toolchain/tools` and run `make`, this should automatically build the toolchains and place the executable binaries in `Sunflower-toolchain/tools/bin`.
+## Tests
 
-## Step 3 - Compiling the program
- `cd` into `program` and run `make`, this should generate an executable binary from `init.s` and `led.c`. Run `./getprog` to get the machine instructions into a file called `program.hex` as well as to automatically copy the file to `RV32I_iCE40/verilog`.<br><br>
- The processor contains a memory mapped register at location *0x2000*, and the program writes a value to that register which the lower 8 bits is then shown by the pin outputs (you can connect them to leds to see them blink).
- 
-## Step 4 - Programming the FPGA
-1. If you're using the iCE40 MDP, then in the root of the repository run:<br>
-`./progMDP`<br>
-In this example device U3 is used.<br><br>
-
-2. If you're using the iCE40 breakout board, run:<br>
-`./prog`<br><br>
-
-Note that the pins used will be dependent on the respective `pcf` files.
+The verilog modules have a (non-comprehensive) test suite which can be run using [iverilog](http://iverilog.icarus.com/).

@@ -251,6 +251,12 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 		endcase
 	end
 
+	//Initial values
+	initial begin
+		$readmemh("verilog/data.hex", data_block);
+		clk_stall = 0;
+	end
+
 	//LED register interfacing with I/O
 	always @(posedge clk) begin
 		if(memwrite == 1'b1 && addr == 32'h2000) begin
@@ -258,13 +264,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 		end
 	end
 
-	//BRAM implementation
-
-	initial begin
-		$readmemh("verilog/data.hex", data_block);
-		clk_stall = 0;
-	end
-
+	//State machine
 	always @(posedge clk) begin
 		case (state)
 			IDLE: begin
