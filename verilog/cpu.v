@@ -174,12 +174,12 @@ module cpu(
 	
 	regfile register_files( 
 			.clk(clk), 
-			.write(ex_mem_out[2]), //mem_wb_out[2]
-			.wrAddr(ex_mem_out[142:138]), //mem_wb_out[104:100]
+			.write(ex_mem_out[2]),
+			.wrAddr(ex_mem_out[142:138]),
 			.wrData(reg_dat_mux_out), 
-			.rdAddrA(inst_mux_out[19:15]), //if_id_out[51:47] //inst_mux_out[19:15]
+			.rdAddrA(inst_mux_out[19:15]),
 			.rdDataA(regA_out), 
-			.rdAddrB(inst_mux_out[24:20]), //if_id_out[56:52] //inst_mux_out[24:20]
+			.rdAddrB(inst_mux_out[24:20]),
 			.rdDataB(regB_out)
 		);
 	
@@ -336,9 +336,9 @@ module cpu(
 		);
 	
 	mux2to1 reg_dat_mux( //TODO cleanup
-			.input0(mem_regwb_mux_out), //wb_mux_out
-			.input1(id_ex_out[43:12]), //ex_mem_out[40:9]
-			.select(ex_mem_out[0]), //mem_wb_out[0]
+			.input0(mem_regwb_mux_out),
+			.input1(id_ex_out[43:12]),
+			.select(ex_mem_out[0]),
 			.out(reg_dat_mux_out)
 		);
 	
