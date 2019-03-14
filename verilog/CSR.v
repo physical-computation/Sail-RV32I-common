@@ -11,7 +11,7 @@ module csr_file (clk, write, wrAddr_CSR, wrVal_CSR, rdAddr_CSR, rdVal_CSR);
 	reg[31:0] csr_file [0:2**12];
 
 	assign rdVal_CSR = ((wrAddr_CSR==rdAddr_CSR) & write) ? wrVal_CSR : csr_file[rdAddr_CSR];
-	
+
 	always @(posedge clk) begin
 		if (write) begin
 			csr_file[wrAddr_CSR] <= wrVal_CSR;

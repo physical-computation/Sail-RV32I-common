@@ -9,41 +9,41 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	output reg[31:0] read_data;
 	output [7:0] led;
 	output reg clk_stall; //Sets the clock high
-	
+
 	//led register
 	reg [31:0] led_reg;
-	
+
 	//current state
 	integer state = 0;
-	
+
 	//possible states
 	parameter IDLE = 0;
 	parameter READ_BUFFER = 1;
 	parameter READ = 2;
 	parameter WRITE = 3;
-	
+
 	//line buffer
 	reg[255:0] line_buf;
-	
+
 	//read buffer
 	reg[31:0] read_buf;
-	
+
 	//buffer to identify read or write operation
 	reg memread_buf;
 	reg memwrite_buf;
-	
+
 	//buffers to store write data
 	reg[31:0] write_data_buffer;
-	
+
 	//buffer to store address
 	reg[31:0] addr_buf;
-	
+
 	//sign_mask buffer
 	reg[3:0] sign_mask_buf;
-	
+
 	//block memory registers
 	reg[255:0] data_block[0:127];
-	
+
 	//wire assignments
 	wire[5:0] addr_buf_tag;
 	wire[2:0] addr_buf_index;
@@ -55,13 +55,13 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	assign addr_buf_block_addr = addr_buf[13:5];
 	assign addr_buf_word_offset = addr_buf[4:2];
 	assign addr_buf_byte_offset = addr_buf[1:0];
-	
+
 	//regs for multiplexer output
 	reg[7:0] buf0;
 	reg[7:0] buf1;
 	reg[7:0] buf2;
 	reg[7:0] buf3;
-	
+
 	//combinational logic implementing a multiplexer to select word from block
 	//put into 4 byte buffers
 	always @(*) begin
@@ -72,49 +72,49 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 				buf2 = line_buf[23:16];
 				buf3 = line_buf[31:24];
 			end
-			
+
 			3'b001: begin
 				buf0 = line_buf[39:32];
 				buf1 = line_buf[47:40];
 				buf2 = line_buf[55:48];
 				buf3 = line_buf[63:56];
 			end
-			
+
 			3'b010: begin
 				buf0 = line_buf[71:64];
 				buf1 = line_buf[79:72];
 				buf2 = line_buf[87:80];
 				buf3 = line_buf[95:88];
 			end
-			
+
 			3'b011: begin
 				buf0 = line_buf[103:96];
 				buf1 = line_buf[111:104];
 				buf2 = line_buf[119:112];
 				buf3 = line_buf[127:120];
 			end
-			
+
 			3'b100: begin
 				buf0 = line_buf[135:128];
 				buf1 = line_buf[143:136];
 				buf2 = line_buf[151:144];
 				buf3 = line_buf[159:152];
 			end
-			
+
 			3'b101: begin
 				buf0 = line_buf[167:160];
 				buf1 = line_buf[175:168];
 				buf2 = line_buf[183:176];
 				buf3 = line_buf[191:184];
 			end
-			
+
 			3'b110: begin
 				buf0 = line_buf[199:192];
 				buf1 = line_buf[207:200];
 				buf2 = line_buf[215:208];
 				buf3 = line_buf[223:216];
 			end
-			
+
 			3'b111: begin
 				buf0 = line_buf[231:224];
 				buf1 = line_buf[239:232];
@@ -123,7 +123,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 			end
 		endcase
 	end
-	
+
 	/*
 	*combinational logic to modify line for writing
 	*/
@@ -144,7 +144,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	assign wdec_sig5 = (addr_buf_word_offset[2]) & (~addr_buf_word_offset[1]) & (addr_buf_word_offset[0]);
 	assign wdec_sig6 = (addr_buf_word_offset[2]) & (addr_buf_word_offset[1]) & (~addr_buf_word_offset[0]);
 	assign wdec_sig7 = (addr_buf_word_offset[2]) & (addr_buf_word_offset[1]) & (addr_buf_word_offset[0]);
-	
+
 	//byte select decoder
 	wire bdec_sig0;
 	wire bdec_sig1;
@@ -154,7 +154,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	assign bdec_sig1 = (~addr_buf_byte_offset[1]) & (addr_buf_byte_offset[0]);
 	assign bdec_sig2 = (addr_buf_byte_offset[1]) & (~addr_buf_byte_offset[0]);
 	assign bdec_sig3 = (addr_buf_byte_offset[1]) & (addr_buf_byte_offset[0]);
-	
+
 	//Constructing the word to be replaced
 	//For write byte
 	wire[7:0] byte_r0;
@@ -165,13 +165,13 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	assign byte_r1 = (bdec_sig1==1'b1)?write_data_buffer[7:0]:buf1;
 	assign byte_r2 = (bdec_sig2==1'b1)?write_data_buffer[7:0]:buf2;
 	assign byte_r3 = (bdec_sig3==1'b1)?write_data_buffer[7:0]:buf3;
-	
+
 	//For write halfword
 	wire[15:0] halfword_r0;
 	wire[15:0] halfword_r1;
 	assign halfword_r0 = (addr_buf_byte_offset[1]==1'b1)?{buf1, buf0}:write_data_buffer[15:0];
 	assign halfword_r1 = (addr_buf_byte_offset[1]==1'b1)?write_data_buffer[15:0]:{buf3, buf2};
-	
+
 	reg[31:0] replacement_word;
 	always @(*) begin
 		case (sign_mask_buf[2:0])
@@ -189,7 +189,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 			end
 		endcase
 	end
-	
+
 	//Multiplexers that select which word is replaced
 	wire[31:0] w0;
 	wire[31:0] w1;
@@ -207,7 +207,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	assign w5 = (wdec_sig5==1'b1)?replacement_word:line_buf[191:160];
 	assign w6 = (wdec_sig6==1'b1)?replacement_word:line_buf[223:192];
 	assign w7 = (wdec_sig7==1'b1)?replacement_word:line_buf[255:224];
-	
+
 	/*
 	* Combinational logic for generating 32-bit read data
 	*/
@@ -229,7 +229,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 					end
 				endcase
 			end
-			
+
 			3'b011: begin //Halfword
 				case(addr_buf_byte_offset[1])
 					1'b0: begin
@@ -240,30 +240,30 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 					end
 				endcase
 			end
-			
+
 			3'b111: begin //Word
 				read_buf = {buf3, buf2, buf1, buf0};
 			end
-			
+
 			default: begin
 				//do nothing
 			end
 		endcase
 	end
-	
+
 	//Initial values
 	initial begin
 		$readmemh("verilog/data.hex", data_block);
 		clk_stall = 0;
 	end
-	
+
 	//LED register interfacing with I/O
 	always @(posedge clk) begin
 		if(memwrite == 1'b1 && addr == 32'h2000) begin
 			led_reg <= write_data;
 		end
 	end
-	
+
 	//State machine
 	always @(posedge clk) begin
 		case (state)
@@ -278,9 +278,9 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 				if(memwrite==1'b1 || memread==1'b1) begin
 					state <= READ_BUFFER;
 					clk_stall <= 1;
-				end 
+				end
 			end
-			
+
 			READ_BUFFER: begin
 				line_buf <= data_block[addr_buf_block_addr];
 				if(memread_buf==1'b1) begin
@@ -296,17 +296,17 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 				read_data <= read_buf;
 				state <= IDLE;
 			end
-			
+
 			WRITE: begin
 				clk_stall <= 0;
 				data_block[addr_buf_block_addr] <= {w7, w6, w5, w4, w3, w2, w1, w0};
 				state <= IDLE;
 			end
-			
+
 		endcase
 	end
-	
+
 	//test led
 	assign led = led_reg[7:0];
-	
+
 endmodule

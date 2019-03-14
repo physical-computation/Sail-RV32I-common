@@ -4,12 +4,12 @@ module alu(ALUctl, A, B, ALUOut, Branch_Enable);
 	input[31:0] A, B;
 	output reg[31:0] ALUOut;
 	output reg Branch_Enable;
-	
+
 	initial begin
 		ALUOut = 32'b0;
 		Branch_Enable = 1'b0;
 	end
-	
+
 	always @(ALUctl, A, B) begin
 		case(ALUctl[3:0])
 			4'b0000: ALUOut = A & B; //AND
@@ -27,7 +27,7 @@ module alu(ALUctl, A, B, ALUOut, Branch_Enable);
 			default: ALUOut = 0; //Shouldn't reach this state
 		endcase
 	end
-	
+
 	/*
 	conditions:
 	Equal: 00
