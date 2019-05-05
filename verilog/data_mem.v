@@ -236,11 +236,11 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	wire[7:0] byte_r1;
 	wire[7:0] byte_r2;
 	wire[7:0] byte_r3;
-
-	assign byte_r0 = (bdec_sig0==1'b1)?write_data_buffer[7:0]:buf0;
-	assign byte_r1 = (bdec_sig1==1'b1)?write_data_buffer[7:0]:buf1;
-	assign byte_r2 = (bdec_sig2==1'b1)?write_data_buffer[7:0]:buf2;
-	assign byte_r3 = (bdec_sig3==1'b1)?write_data_buffer[7:0]:buf3;
+ 
+	assign byte_r0 = (bdec_sig0==1'b1) ? write_data_buffer[7:0] : buf0;
+	assign byte_r1 = (bdec_sig1==1'b1) ? write_data_buffer[7:0] : buf1;
+	assign byte_r2 = (bdec_sig2==1'b1) ? write_data_buffer[7:0] : buf2;
+	assign byte_r3 = (bdec_sig3==1'b1) ? write_data_buffer[7:0] : buf3;
 
 
 	/*
@@ -249,8 +249,8 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	wire[15:0] halfword_r0;
 	wire[15:0] halfword_r1;
 
-	assign halfword_r0 = (addr_buf_byte_offset[1]==1'b1)?{buf1, buf0}:write_data_buffer[15:0];
-	assign halfword_r1 = (addr_buf_byte_offset[1]==1'b1)?write_data_buffer[15:0]:{buf3, buf2};
+	assign halfword_r0 = (addr_buf_byte_offset[1]==1'b1) ? {buf1, buf0} : write_data_buffer[15:0];
+	assign halfword_r1 = (addr_buf_byte_offset[1]==1'b1) ? write_data_buffer[15:0] : {buf3, buf2};
 
 	reg[31:0] replacement_word;
 	always @(*) begin
@@ -282,14 +282,14 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	wire[31:0] w6;
 	wire[31:0] w7;
 
-	assign w0 = (wdec_sig0==1'b1)?replacement_word:line_buf[31:0];
-	assign w1 = (wdec_sig1==1'b1)?replacement_word:line_buf[63:32];
-	assign w2 = (wdec_sig2==1'b1)?replacement_word:line_buf[95:64];
-	assign w3 = (wdec_sig3==1'b1)?replacement_word:line_buf[127:96];
-	assign w4 = (wdec_sig4==1'b1)?replacement_word:line_buf[159:128];
-	assign w5 = (wdec_sig5==1'b1)?replacement_word:line_buf[191:160];
-	assign w6 = (wdec_sig6==1'b1)?replacement_word:line_buf[223:192];
-	assign w7 = (wdec_sig7==1'b1)?replacement_word:line_buf[255:224];
+	assign w0 = (wdec_sig0==1'b1) ? replacement_word : line_buf[31:0];
+	assign w1 = (wdec_sig1==1'b1) ? replacement_word : line_buf[63:32];
+	assign w2 = (wdec_sig2==1'b1) ? replacement_word : line_buf[95:64];
+	assign w3 = (wdec_sig3==1'b1) ? replacement_word : line_buf[127:96];
+	assign w4 = (wdec_sig4==1'b1) ? replacement_word : line_buf[159:128];
+	assign w5 = (wdec_sig5==1'b1) ? replacement_word : line_buf[191:160];
+	assign w6 = (wdec_sig6==1'b1) ? replacement_word : line_buf[223:192];
+	assign w7 = (wdec_sig7==1'b1) ? replacement_word : line_buf[255:224];
 
 	/*
 	 *	Combinational logic for generating 32-bit read data
@@ -299,16 +299,16 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 			3'b001: begin //Byte
 				case(addr_buf_byte_offset)
 					2'b00: begin
-						read_buf = (sign_mask_buf[3]==1'b1)?{{24{buf0[7]}}, buf0}:{24'b0, buf0};
+						read_buf = (sign_mask_buf[3]==1'b1) ? {{24{buf0[7]}}, buf0} : {24'b0, buf0};
 					end
 					2'b01: begin
-						read_buf = (sign_mask_buf[3]==1'b1)?{{24{buf1[7]}}, buf1}:{24'b0, buf1};
+						read_buf = (sign_mask_buf[3]==1'b1) ? {{24{buf1[7]}}, buf1} : {24'b0, buf1};
 					end
 					2'b10: begin
-						read_buf = (sign_mask_buf[3]==1'b1)?{{24{buf2[7]}}, buf2}:{24'b0, buf2};
+						read_buf = (sign_mask_buf[3]==1'b1) ? {{24{buf2[7]}}, buf2} : {24'b0, buf2};
 					end
 					2'b11: begin
-						read_buf = (sign_mask_buf[3]==1'b1)?{{24{buf3[7]}}, buf3}:{24'b0, buf3};
+						read_buf = (sign_mask_buf[3]==1'b1) ? {{24{buf3[7]}}, buf3} : {24'b0, buf3};
 					end
 				endcase
 			end
@@ -316,10 +316,10 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 			3'b011: begin //Halfword
 				case(addr_buf_byte_offset[1])
 					1'b0: begin
-						read_buf = (sign_mask_buf[3]==1'b1)?{{16{buf1[7]}}, buf1, buf0}:{16'b0, buf1, buf0};
+						read_buf = (sign_mask_buf[3]==1'b1) ? {{16{buf1[7]}}, buf1, buf0} : {16'b0, buf1, buf0};
 					end
 					1'b1: begin
-						read_buf = (sign_mask_buf[3]==1'b1)?{{16{buf3[7]}}, buf3, buf2}:{16'b0, buf3, buf2};
+						read_buf = (sign_mask_buf[3]==1'b1) ? {{16{buf3[7]}}, buf3, buf2} : {16'b0, buf3, buf2};
 					end
 				endcase
 			end
