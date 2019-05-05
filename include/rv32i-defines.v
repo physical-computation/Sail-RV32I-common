@@ -1,5 +1,5 @@
 /*
-	Authored 2018-2019, Ryan Voo.
+	Authored 2019, Phillip Stanley-Marbell.
 
 	All rights reserved.
 	Redistribution and use in source and binary forms, with or without
@@ -34,40 +34,16 @@
 	POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
 /*
- *	RISC-V CONTROL UNIT
+ *	7-bit RISC-V opcode field
  */
-module control(
-		opcode,
-		MemtoReg,
-		RegWrite,
-		MemWrite,
-		MemRead,
-		Branch,
-		ALUSrc,
-		Jump,
-		Jalr,
-		Lui,
-		Auipc,
-		Fence,
-		CSRR
-	);
-
-	input	[6:0] opcode;
-	output	MemtoReg, RegWrite, MemWrite, MemRead, Branch, ALUSrc, Jump, Jalr, Lui, Auipc, Fence, CSRR;
-
-	assign MemtoReg = (~opcode[5]) & (~opcode[4]) & (~opcode[3]) & (opcode[0]);
-	assign RegWrite = ((~(opcode[4] | opcode[5])) | opcode[2] | opcode[4]) & opcode[0];
-	assign MemWrite = (~opcode[6]) & (opcode[5]) & (~opcode[4]);
-	assign MemRead = (~opcode[5]) & (~opcode[4]) & (~opcode[3]) & (opcode[1]);
-	assign Branch = (opcode[6]) & (~opcode[4]) & (~opcode[2]);
-	assign ALUSrc = ~(opcode[6] | opcode[4]) | (~opcode[5]);
-	assign Jump = (opcode[6]) & (opcode[5]) & (~opcode[4]) & (opcode[2]);
-	assign Jalr = (opcode[6]) & (opcode[5]) & (~opcode[4]) & (~opcode[3]) & (opcode[2]);
-	assign Lui = (~opcode[6]) & (opcode[5]) & (opcode[4]) & (~opcode[3]) & (opcode[2]);
-	assign Auipc = (~opcode[6]) & (~opcode[5]) & (opcode[4]) & (~opcode[3]) & (opcode[2]);
-	assign Fence = (~opcode[5]) & opcode[3] & (opcode[2]);
-	assign CSRR = (opcode[6]) & (opcode[4]);
-endmodule
+`define kRV32I_INSTRUCTION_OPCODE_LUI			7'b0110111
+`define kRV32I_INSTRUCTION_OPCODE_AUIPC			7'b0010111
+`define kRV32I_INSTRUCTION_OPCODE_JAL			7'b1101111
+`define kRV32I_INSTRUCTION_OPCODE_JALR			7'b1100111
+`define kRV32I_INSTRUCTION_OPCODE_BRANCH		7'b1100011
+`define kRV32I_INSTRUCTION_OPCODE_LOAD			7'b0000011
+`define kRV32I_INSTRUCTION_OPCODE_STORE			7'b0100011
+`define kRV32I_INSTRUCTION_OPCODE_IMMOP			7'b0010011
+`define kRV32I_INSTRUCTION_OPCODE_ALUOP			7'b0110011
+`define kRV32I_INSTRUCTION_OPCODE_CSRR			7'b1110011
