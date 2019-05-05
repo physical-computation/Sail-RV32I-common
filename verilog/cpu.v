@@ -1,4 +1,46 @@
-//cpu top-level
+/*
+	Authored 2018-2019, Ryan Voo.
+
+	All rights reserved.
+	Redistribution and use in source and binary forms, with or without
+	modification, are permitted provided that the following conditions
+	are met:
+
+	*	Redistributions of source code must retain the above
+		copyright notice, this list of conditions and the following
+		disclaimer.
+
+	*	Redistributions in binary form must reproduce the above
+		copyright notice, this list of conditions and the following
+		disclaimer in the documentation and/or other materials
+		provided with the distribution.
+
+	*	Neither the name of the author nor the names of its
+		contributors may be used to endorse or promote products
+		derived from this software without specific prior written
+		permission.
+
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+	"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+	LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+	FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+	COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+	CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+	ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+	POSSIBILITY OF SUCH DAMAGE.
+*/
+
+
+
+/*
+ *	cpu top-level
+ */
+
+
 
 module cpu(
 			clk,
@@ -11,103 +53,128 @@ module cpu(
 			data_mem_memread,
 			data_mem_sign_mask
 		);
-
-	//Input Clock
+	/*
+	 *	Input Clock
+	 */
 	input clk;
 
-	//instruction memory input
-	output[31:0] inst_mem_in;
-	input[31:0] inst_mem_out;
+	/*
+	 *	instruction memory input
+	 */
+	output [31:0]		inst_mem_in;
+	input [31:0]		inst_mem_out;
 
-	//Data Memory
-	input[31:0] data_mem_out;
-	output[31:0] data_mem_addr;
-	output[31:0] data_mem_WrData;
-	output data_mem_memwrite;
-	output data_mem_memread;
-	output[3:0] data_mem_sign_mask;
+	/*
+	 *	Data Memory
+	 */
+	input [31:0]		data_mem_out;
+	output [31:0]		data_mem_addr;
+	output [31:0]		data_mem_WrData;
+	output			data_mem_memwrite;
+	output			data_mem_memread;
+	output [3:0]		data_mem_sign_mask;
 
-	//Program Counter
-	wire[31:0] pc_mux0;
-	wire[31:0] pc_in;
-	wire[31:0] pc_out;
-	wire pcsrc;
-	wire[31:0] inst_mux_out;
-	wire[31:0] fence_mux_out;
+	/*
+	 *	Program Counter
+	 */
+	wire [31:0]		pc_mux0;
+	wire [31:0]		pc_in;
+	wire [31:0]		pc_out;
+	wire			pcsrc;
+	wire [31:0]		inst_mux_out;
+	wire [31:0]		fence_mux_out;
 
-	//Pipeline Registers
-	wire[63:0] if_id_out;
-	wire[177:0] id_ex_out;
-	wire[154:0] ex_mem_out;
-	wire[116:0] mem_wb_out;
+	/*
+	 *	Pipeline Registers
+	 */
+	wire [63:0]		if_id_out;
+	wire [177:0]		id_ex_out;
+	wire [154:0]		ex_mem_out;
+	wire [116:0]		mem_wb_out;
 
-	//control signals
-	wire MemtoReg1;
-	wire RegWrite1;
-	wire MemWrite1;
-	wire MemRead1;
-	wire Branch1;
-	wire Jump1;
-	wire Jalr1;
-	wire ALUSrc1;
-	wire Lui1;
-	wire Auipc1;
-	wire Fence_signal;
-	wire CSRR_signal;
-	wire CSRRI_signal;
+	/*
+	 *	Control signals
+	 */
+	wire			MemtoReg1;
+	wire			RegWrite1;
+	wire			MemWrite1;
+	wire			MemRead1;
+	wire			Branch1;
+	wire			Jump1;
+	wire			Jalr1;
+	wire			ALUSrc1;
+	wire			Lui1;
+	wire			Auipc1;
+	wire			Fence_signal;
+	wire			CSRR_signal;
+	wire			CSRRI_signal;
 
-	//Decode stage
-	wire [31:0] cont_mux_out; //control signal mux
-	wire[31:0] regA_out;
-	wire[31:0] regB_out;
-	wire[31:0] imm_out;
-	wire[31:0] RegA_mux_out;
-	wire[31:0] RegB_mux_out;
-	wire[31:0] RegA_AddrFwdFlush_mux_out;
-	wire[31:0] RegB_AddrFwdFlush_mux_out;
-	wire[31:0] rdValOut_CSR;
-	wire[3:0]  dataMem_sign_mask;
+	/*
+	 *	Decode stage
+	 */
+	wire [31:0]		cont_mux_out; //control signal mux
+	wire [31:0]		regA_out;
+	wire [31:0]		regB_out;
+	wire [31:0]		imm_out;
+	wire [31:0]		RegA_mux_out;
+	wire [31:0]		RegB_mux_out;
+	wire [31:0]		RegA_AddrFwdFlush_mux_out;
+	wire [31:0]		RegB_AddrFwdFlush_mux_out;
+	wire [31:0]		rdValOut_CSR;
+	wire [3:0]		dataMem_sign_mask;
 
-	//execute stage
-	wire[31:0] ex_cont_mux_out;
-	wire[31:0] addr_adder_mux_out;
-	wire[31:0] alu_mux_out;
-	wire[31:0] addr_adder_sum;
-	wire[6:0] alu_ctl;
-	wire alu_branch_enable;
-	wire[31:0] alu_result;
-	wire[31:0] lui_result;
+	/*
+	 *	Execute stage
+	 */
+	wire [31:0]		ex_cont_mux_out;
+	wire [31:0]		addr_adder_mux_out;
+	wire [31:0]		alu_mux_out;
+	wire [31:0]		addr_adder_sum;
+	wire [6:0]		alu_ctl;
+	wire			alu_branch_enable;
+	wire [31:0]		alu_result;
+	wire [31:0]		lui_result;
 
-	//Memory access stage
-	wire[31:0] auipc_mux_out;
-	wire[31:0] mem_csrr_mux_out;
+	/*
+	 *	Memory access stage
+	 */
+	wire [31:0]		auipc_mux_out;
+	wire [31:0]		mem_csrr_mux_out;
 
-	//Writeback to registers stage
-	wire[31:0] wb_mux_out;
-	wire[31:0] reg_dat_mux_out;
+	/*
+	 *	Writeback to registers stage
+	 */
+	wire [31:0]		wb_mux_out;
+	wire [31:0]		reg_dat_mux_out;
 
-	//Forwarding multiplexer wires
-	wire[31:0] dataMemOut_fwd_mux_out;
-	wire[31:0] mem_fwd1_mux_out;
-	wire[31:0] mem_fwd2_mux_out;
-	wire[31:0] wb_fwd1_mux_out;
-	wire[31:0] wb_fwd2_mux_out;
-	wire mfwd1;
-	wire mfwd2;
-	wire wfwd1;
-	wire wfwd2;
+	/*
+	 *	Forwarding multiplexer wires
+	 */
+	wire [31:0]		dataMemOut_fwd_mux_out;
+	wire [31:0]		mem_fwd1_mux_out;
+	wire [31:0]		mem_fwd2_mux_out;
+	wire [31:0]		wb_fwd1_mux_out;
+	wire [31:0]		wb_fwd2_mux_out;
+	wire			mfwd1;
+	wire			mfwd2;
+	wire			wfwd1;
+	wire			wfwd2;
 
-	//Branch Predictor
-	wire[31:0] pc_adder_out;
-	wire[31:0] branch_predictor_addr;
-	wire predict;
-	wire[31:0] branch_predictor_mux_out;
-	wire actual_branch_decision;
-	wire mistake_trigger;
-	wire decode_ctrl_mux_sel;
-	wire inst_mux_sel;
+	/*
+	 *	Branch Predictor
+	 */
+	wire [31:0]		pc_adder_out;
+	wire [31:0]		branch_predictor_addr;
+	wire			predict;
+	wire [31:0]		branch_predictor_mux_out;
+	wire			actual_branch_decision;
+	wire			mistake_trigger;
+	wire			decode_ctrl_mux_sel;
+	wire			inst_mux_sel;
 
-	//Instruction Fetch Stage
+	/*
+	 *	Instruction Fetch Stage
+	 */
 	mux2to1 pc_mux(
 			.input0(pc_mux0),
 			.input1(ex_mem_out[72:41]),
@@ -141,14 +208,18 @@ module cpu(
 			.out(fence_mux_out)
 		);
 
-	//IF/ID Pipeline Register
+	/*
+	 *	IF/ID Pipeline Register
+	 */
 	if_id if_id_reg(
 			.clk(clk),
 			.data_in({inst_mux_out, pc_out}),
 			.data_out(if_id_out)
 		);
 
-	//Decode Stage
+	/*
+	 *	Decode Stage
+	 */
 	control control_unit(
 			.opcode({if_id_out[38:32]}),
 			.MemtoReg(MemtoReg1),
@@ -301,7 +372,7 @@ module cpu(
 			.Predicted(ex_mem_out[7]),
 			.Branch_Enable(ex_mem_out[73]),
 			.Jump(ex_mem_out[0]),
-			.Mistake(mistake_trigger),
+			.Mispredict(mistake_trigger),
 			.Decision(actual_branch_decision),
 			.Branch_Jump_Trigger(pcsrc)
 		);
@@ -444,6 +515,4 @@ module cpu(
 	assign data_mem_memwrite = ex_cont_mux_out[4];
 	assign data_mem_memread = ex_cont_mux_out[5];
 	assign data_mem_sign_mask = id_ex_out[150:147];
-
 endmodule
-
