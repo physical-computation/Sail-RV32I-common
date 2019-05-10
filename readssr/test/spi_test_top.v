@@ -97,15 +97,20 @@ parameter WAIT_IPDONE 																= 2;
 parameter IDLE 																				= 3;
 parameter REQUEST_READSSR 														= 4;
 parameter ACK_READSSR 																= 5;
-parameter READ_SPISR 																	= 6;
-parameter WAIT_FOR_TRDY 															= 7;
-parameter WAIT_SBACKO_BEFORE_TRANSMIT 								= 8;
-parameter WRITE_DUMMY_TXDATA													= 9;
-parameter WAIT_FOR_RX_INTERRUPT 											= 10;
-parameter CLEAR_SPIIRQ 																= 11;
-parameter SPIIRQ_SBACKO_AND_INCREMENT_ITERATOR 				= 12;
-parameter DEASSERT_READSSR_REQUEST 										= 13;
-parameter READSSR_ACK_DEASSERT 												= 14;
+//parameter READ_SPISR 																	= 6;
+//parameter WAIT_FOR_TRDY 															= 7;
+//parameter WAIT_SBACKO_BEFORE_TRANSMIT 								= 8;
+parameter WRITE_DUMMY_TXDATA													= 6;
+parameter TXDATA_SBACKO 															= 7;
+parameter TXDATA_SBACKO_DEASSERT 											= 8;
+parameter WAIT_FOR_RX_INTERRUPT 											= 9;
+parameter CLEAR_SPIIRQ 																= 10;
+parameter SPIIRQ_SBACKO_AND_INCREMENT_ITERATOR 				= 11;
+parameter CONFIGURE_AS_MASTER 												= 12;
+parameter MASTER_CONFIGURE_SBACK 											= 13;
+parameter MASTER_CONFIGURE_SBACK_DEASSERT_WAIT 				= 14;
+parameter DEASSERT_READSSR_REQUEST 										= 15;
+parameter READSSR_ACK_DEASSERT 												= 16;
 
 integer state = 0;
 
@@ -214,22 +219,21 @@ always @(posedge clk) begin
 			end
 		end*/
 		
-		IDLE: begin //8
+		IDLE: begin //3
 			readssr_req <= 0;
 			iterator <= 0;
 			mscn <= 1'b1;
-			
 			if(trigger) begin
 				state <= REQUEST_READSSR;
 			end
 		end
 		
-		REQUEST_READSSR: begin //9
+		REQUEST_READSSR: begin //4
 			readssr_req <= 1'b1;
 			state <= ACK_READSSR;
 		end
 
-		ACK_READSSR: begin //10
+		ACK_READSSR: begin //5
 			if(readssr_ack) begin
 				state <= WRITE_DUMMY_TXDATA;//READ_SPISR;
 			end
@@ -246,7 +250,6 @@ always @(posedge clk) begin
 			sbwr_i <= 1'b0; //0 for read
 			sbstb_i <= 1'b1;
 			bus_addr <= `SPISR_addr;
-			mscn <= 1'b0;
 			if(spitrdy) begin
 				scsn <= 1'b1;
 				state <= WAIT_SBACKO_BEFORE_TRANSMIT;
@@ -263,15 +266,32 @@ always @(posedge clk) begin
 			
 		end*/
 		
-		WRITE_DUMMY_TXDATA: begin //13
+		WRITE_DUMMY_TXDATA: begin //6
+			mscn <= 1'b0;
 			sbwr_i <= 1'b1;
 			sbstb_i <= 1'b1;
 			bus_addr <= `SPITXDR_addr;
-			tx_data <= 8'b0;
-			state <= WAIT_FOR_RX_INTERRUPT;
+			tx_data <= 8'b10000001;
+			state <= TXDATA_SBACKO;
 		end
 		
-		WAIT_FOR_RX_INTERRUPT: begin //14
+		TXDATA_SBACKO: begin //7
+			if(sback_o) begin
+				sbwr_i <= 1'b0;
+				sbstb_i <= 1'b0;
+				bus_addr <= 8'b0;
+				tx_data <= 8'b0;
+				state <= TXDATA_SBACKO_DEASSERT;
+			end
+		end
+		
+		TXDATA_SBACKO_DEASSERT: begin
+			if(!sback_o) begin
+				state <= WAIT_FOR_RX_INTERRUPT;
+			end
+		end
+		
+		WAIT_FOR_RX_INTERRUPT: begin //8
 			if(spipirq[0]) begin //RX interrupt
 				mscn <= 1'b1;
 				sbwr_i <= 1'b0;
@@ -281,16 +301,16 @@ always @(posedge clk) begin
 			end
 		end
 		
-		CLEAR_SPIIRQ: begin
+		CLEAR_SPIIRQ: begin //9
 			sbwr_i <= 1'b1;
 			sbstb_i <= 1'b1;
 			bus_addr <= `SPIIRQ_addr;
-			tx_data <= 8'b00001000;
+			tx_data <= 8'b00011000;
 			state <= SPIIRQ_SBACKO_AND_INCREMENT_ITERATOR;
 		end
 		
-		SPIIRQ_SBACKO_AND_INCREMENT_ITERATOR: begin
-			if(sback_o) begin
+		SPIIRQ_SBACKO_AND_INCREMENT_ITERATOR: begin //10
+			if(!spipirq[0]) begin
 				sbwr_i <= 1'b0;
 				sbstb_i <= 1'b0;
 				bus_addr <= 8'b0;
@@ -300,8 +320,36 @@ always @(posedge clk) begin
 					state <= WRITE_DUMMY_TXDATA;
 				end
 				else begin
-					state <= DEASSERT_READSSR_REQUEST;
+					state <= CONFIGURE_AS_MASTER;
 				end
+			end
+		end
+		
+		CONFIGURE_AS_MASTER: begin //3
+			sbwr_i <= 1'b1;
+			sbstb_i <= 1'b1;
+			bus_addr <= `SPICR2_addr;
+			tx_data <= 8'b10000000;
+			state <= MASTER_CONFIGURE_SBACK;//MASTER_CONFIGURE_SBACK;
+		end
+		
+		MASTER_CONFIGURE_SBACK: begin //4
+			if(sback_o) begin
+				sbwr_i <= 1'b0;
+				sbstb_i <= 1'b0;
+				bus_addr <= 8'b0;
+				tx_data <= 8'b0;
+				state <= MASTER_CONFIGURE_SBACK_DEASSERT_WAIT;
+			end
+		end
+		
+		MASTER_CONFIGURE_SBACK_DEASSERT_WAIT: begin //5
+			sbwr_i <= 1'b0;
+			sbstb_i <= 1'b0;
+			bus_addr <= 8'b0;
+			tx_data <= 8'b0;
+			if(!sback_o) begin
+				state <= DEASSERT_READSSR_REQUEST;
 			end
 		end
 		
@@ -328,7 +376,7 @@ assign spitrdy = rx_data[4];
 //assign mscn = mscn30[0];
 
 //debug signal
-assign led = {sback_o, mscn30[2], state[5:0]};
+assign led = {sback_o, mscn30[0], spipirq[0], state[4:0]};
 
 
 endmodule
