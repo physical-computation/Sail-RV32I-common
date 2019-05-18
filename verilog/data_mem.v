@@ -185,7 +185,6 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	wire select1;
 	wire select2;
 	
-	wire[31:0] out0;
 	wire[31:0] out1;
 	wire[31:0] out2;
 	wire[31:0] out3;
@@ -196,7 +195,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	 * d is addr_buf_byte_offset[1], e is addr_buf_byte_offset[0]
 	 */
 	
-	assign select0 = (~sign_mask_buf[2] & ~sign_mask_buf[1] & ~addr_buf_byte_offset[1] & addr_buf_byte_offset[0]) | (~sign_mask_buf[2] & addr_buf_byte_offset[1] & addr_buf_byte_offset[0]) | (~sign_mask_buf[2] & sign_mask_buf[1] & addr_buf_byte_offset[0]); //~a~b~de + ~ade + ~abd
+	assign select0 = (~sign_mask_buf[2] & ~sign_mask_buf[1] & ~addr_buf_byte_offset[1] & addr_buf_byte_offset[0]) | (~sign_mask_buf[2] & addr_buf_byte_offset[1] & addr_buf_byte_offset[0]) | (~sign_mask_buf[2] & sign_mask_buf[1] & addr_buf_byte_offset[1]); //~a~b~de + ~ade + ~abd
 	assign select1 = (~sign_mask_buf[2] & ~sign_mask_buf[1] & addr_buf_byte_offset[1]) | (sign_mask_buf[2] & sign_mask_buf[1]); // ~a~bd + ab
 	assign select2 = sign_mask_buf[1]; //b
 	
