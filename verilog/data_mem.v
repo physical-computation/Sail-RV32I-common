@@ -219,7 +219,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	 *	modules in the design.
 	 */
 	initial begin
-		$readmemh("verilog/data.hex", data_block);
+		$readmemh("verilog/program.hex", data_block);
 		clk_stall = 0;
 	end
 
