@@ -52,11 +52,17 @@ module control(
 		Lui,
 		Auipc,
 		Fence,
-		CSRR
+		CSRR,
+		
+		//new control signals for uncertainty
+		DMemtoDReg,
+		DRegWrite,
+		DMemRead,
+		DMemWrite
 	);
 
 	input	[6:0] opcode;
-	output	MemtoReg, RegWrite, MemWrite, MemRead, Branch, ALUSrc, Jump, Jalr, Lui, Auipc, Fence, CSRR;
+	output	MemtoReg, RegWrite, MemWrite, MemRead, Branch, ALUSrc, Jump, Jalr, Lui, Auipc, Fence, CSRR, DMemtoDReg, DRegWrite, DMemRead, DMemWrite;
 
 	assign MemtoReg = (~opcode[5]) & (~opcode[4]) & (~opcode[3]);
 	assign RegWrite = ((~opcode[5]) & (~opcode[3])) | (opcode[4] & (~opcode[3])) | opcode[2];
@@ -70,5 +76,11 @@ module control(
 	assign Auipc = (~opcode[5]) & (opcode[4]) & (opcode[2]);
 	assign Fence = (~opcode[5]) & (~opcode[4]) & (opcode[2]);
 	assign CSRR = (opcode[6]) & (opcode[4]) & (~opcode[3]);
+	
+	//New control signals
+	assign DMemtoDReg = (~opcode[6]) & (~opcode[5]) & (opcode[3]) & (~opcode[2]);
+	assign DRegWrite = (~opcode[5]) & (opcode[3]) & (~opcode[2]);
+	assign DMemRead = (~opcode[6]) & (~opcode[5]) & (opcode[3]) & (~opcode[2]);
+	assign DMemWrite = (~opcode[6]) & (opcode[5]) & (opcode[3]);
 	
 endmodule
