@@ -58,6 +58,8 @@ module cpu(
 			DataMem_DistIn,
 			DMemWrite_sig,
 			DMemRead_sig,
+			du_clk_stall,
+			du_clk_in
 		);
 	
 	/*
@@ -67,6 +69,8 @@ module cpu(
 	output[255:0] DataMem_DistIn;
 	output DMemWrite_sig;
 	output DMemRead_sig;
+	output du_clk_stall;
+	input du_clk_in;
 	
 	/*
 	 *	Input Clock
@@ -550,7 +554,6 @@ module cpu(
 	wire[255:0] DReg_out; //distribution register output
 	wire du_ctrl;
 	wire[255:0] du_result;
-	wire du_clk_stall;
 	
 	wire[3:0] EX_dist_ctrl_signals;
 	
@@ -582,7 +585,7 @@ module cpu(
 	);
 	
 	distribution_unit DU_inst0(
-		.clk(clk),
+		.clk(du_clk_in),
 		.DUCtrl(du_ctrl),
 		.rs1(regA_out), //[31:0]
 		.DU_input(EX_DFwdMuxOut), //[255:0]
