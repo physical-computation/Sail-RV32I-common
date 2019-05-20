@@ -38,7 +38,7 @@
 
 //Data cache
 
-module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data, led, clk_stall, dist_in, dist_out);
+module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data, led, clk_stall, dist_in, dist_out, DMemRead, DMemWrite);
 	input			clk;
 	input [31:0]		addr;
 	input [31:0]		write_data;
@@ -50,8 +50,10 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	output reg		clk_stall;	//Sets the clock high
 	
 	//New interface signals
+	input DMemRead;
+	input DMemWrite;
 	input[255:0] dist_in;
-	output[255:0] dist_out; //TODO
+	output reg[255:0] dist_out; //TODO
 
 	/*
 	 *	led register
@@ -325,6 +327,12 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 				if(memwrite==1'b1 || memread==1'b1) begin
 					state <= READ_BUFFER;
 					clk_stall <= 1;
+				end
+				if(DMemWrite) begin
+					data_block[addr[11:5]] <= dist_in;
+				end
+				if(DMemRead) begin
+					dist_out <= data_block[addr[11:5]];
 				end
 			end
 
