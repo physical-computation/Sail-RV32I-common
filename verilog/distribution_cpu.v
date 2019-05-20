@@ -255,10 +255,10 @@ module cpu(
 			.CSRR(CSRR_signal),
 			
 			//new control signals for uncertainty
-			DMemtoDReg(),
-			DRegWrite(),
-			DMemRead(),
-			DMemWrite
+			DMemtoDReg(DMemtoDReg),
+			DRegWrite(DRegWrite),
+			DMemRead(DMemRead),
+			DMemWrite(DMemWrite)
 		);
 
 	mux2to1 cont_mux(
@@ -556,6 +556,7 @@ module cpu(
 	wire[255:0] du_result;
 	
 	wire[3:0] EX_dist_ctrl_signals;
+	wire[3:0] ID_dist_ctrl_signals;
 	
 	wire DMemtoDReg;
 	wire DRegWrite;
@@ -595,12 +596,13 @@ module cpu(
 	
 	id_ex_dregs id_ex_dregs_inst0(
 		clk(clk),
-		data_in({EX_DFwdMuxOut, DMemRead, DMemWrite, DMemtoDReg, DRegWrite}),
+		data_in({EX_DFwdMuxOut, ID_dist_ctrl_signals}),
 		data_out(id_ex_dregs_out)
 	);
 	
 	//multiplexer to flush control signals
 	assign EX_dist_ctrl_signals = pcsrc ? 4'b0 : id_ex_dregs_out[3:0];
+	assign ID_dist_ctrl_signals = decode_ctrl_mux_sel ? 4'b0 : {DMemRead, DMemWrite, DMemtoDReg, DRegWrite};
 	
 	ex_mem_dregs ex_mem_dregs_inst0(
 		clk(clk),
