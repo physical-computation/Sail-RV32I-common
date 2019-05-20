@@ -4,6 +4,7 @@ module distribution_unit(
 		input clk,
 		input DUCtrl,
 		input[31:0] rs1;
+		input[255:0] DU_input;
 		output reg[255:0] DU_result;
 		output reg du_clk_stall;
 	);
