@@ -1,15 +1,15 @@
 
 module DistributionForwardingUnit (
-		input[4:0] ID_sourceAddr;
+		input[4:0] ID_sourceAddr,
 		
-		input EX_DRegWrite;
-		input[4:0] EX_destRegAddr;
+		input EX_DRegWrite,
+		input[4:0] EX_destRegAddr,
 		
-		input MEM_DRegWrite;
-		input[4:0] MEM_destRegAddr;
+		input MEM_DRegWrite,
+		input[4:0] MEM_destRegAddr,
 		
-		output EX_DFwdMuxSel;
-		output MEM_DFwdMuxSel;
+		output EX_DFwdMuxSel,
+		output MEM_DFwdMuxSel
 	);
 	
 	assign EX_DFwdMuxSel = ((ID_sourceAddr == EX_destRegAddr) && EX_DRegWrite);

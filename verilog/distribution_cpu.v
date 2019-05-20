@@ -255,10 +255,10 @@ module cpu(
 			.CSRR(CSRR_signal),
 			
 			//new control signals for uncertainty
-			DMemtoDReg(DMemtoDReg),
-			DRegWrite(DRegWrite),
-			DMemRead(DMemRead),
-			DMemWrite(DMemWrite)
+			.DMemtoDReg(DMemtoDReg),
+			.DRegWrite(DRegWrite),
+			.DMemRead(DMemRead),
+			.DMemWrite(DMemWrite)
 		);
 
 	mux2to1 cont_mux(
@@ -595,9 +595,9 @@ module cpu(
 	);
 	
 	id_ex_dregs id_ex_dregs_inst0(
-		clk(clk),
-		data_in({EX_DFwdMuxOut, ID_dist_ctrl_signals}),
-		data_out(id_ex_dregs_out)
+		.clk(clk),
+		.data_in({EX_DFwdMuxOut, ID_dist_ctrl_signals}),
+		.data_out(id_ex_dregs_out)
 	);
 	
 	//multiplexer to flush control signals
@@ -605,9 +605,9 @@ module cpu(
 	assign ID_dist_ctrl_signals = decode_ctrl_mux_sel ? 4'b0 : {DMemRead, DMemWrite, DMemtoDReg, DRegWrite};
 	
 	ex_mem_dregs ex_mem_dregs_inst0(
-		clk(clk),
-		data_in({du_result, EX_dist_ctrl_signals[1:0]}),
-		data_out(ex_mem_dregs_out)
+		.clk(clk),
+		.data_in({du_result, EX_dist_ctrl_signals[1:0]}),
+		.data_out(ex_mem_dregs_out)
 	);
 	
 	//interface to data mem in top.v

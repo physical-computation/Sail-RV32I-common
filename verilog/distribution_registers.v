@@ -36,5 +36,5 @@ module distReg(clk, DRegWrite, wrAddr, wrData, rdAddr, rdData);
 		regDat		<= regfile[rdAddr];
 	end
 
-	assign	rdDataA = ((wrAddr_buf==rdAddr_buf) & DRegWrite_buf) ? wrData_buf : regDat;
+	assign	rdData = ((wrAddr_buf==rdAddr_buf) & DRegWrite_buf) ? wrData_buf : regDat;
 endmodule

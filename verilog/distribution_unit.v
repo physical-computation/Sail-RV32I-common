@@ -3,10 +3,10 @@
 module distribution_unit(
 		input clk,
 		input DUCtrl,
-		input[31:0] rs1;
-		input[255:0] DU_input;
-		output reg[255:0] DU_result;
-		output reg du_clk_stall;
+		input[31:0] rs1,
+		input[255:0] DU_input,
+		output reg[255:0] DU_result,
+		output reg du_clk_stall
 	);
 	
 	parameter IDLE = 0;
@@ -19,7 +19,7 @@ module distribution_unit(
 	reg[255:0] dist_buffer;
 	
 	//test distribution, acting as placeholder
-	reg[255:0] distribution;
+	reg[255:0] distribution[0];
 	
 	initial begin
 		$readmemh("verilog/distribution.hex", distribution);
@@ -39,7 +39,7 @@ module distribution_unit(
 			
 			READSSR: begin
 				//connect to SPI module, retrive data
-				dist_buffer <= distribution;
+				dist_buffer <= distribution[0];
 				state <= DATA_OUT;
 			end
 			
