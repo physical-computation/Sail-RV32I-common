@@ -38,7 +38,7 @@
 
 //Data cache
 
-module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data, led, clk_stall);
+module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data, led, clk_stall, dist_in, dist_out);
 	input			clk;
 	input [31:0]		addr;
 	input [31:0]		write_data;
@@ -48,6 +48,10 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	output reg [31:0]	read_data;
 	output [7:0]		led;
 	output reg		clk_stall;	//Sets the clock high
+	
+	//New interface signals
+	input[255:0] dist_in;
+	output[255:0] dist_out; //TODO
 
 	/*
 	 *	led register
@@ -70,8 +74,13 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	/*
 	 *	Line buffer
 	 */
-	reg [31:0]		word_buf;
-
+	reg [255:0]		line_buf; //TODO
+	
+	/*
+	 *	word buffer, selected from line buffer
+	 */
+	wire[31:0]		word_buf;
+	
 	/*
 	 *	Read buffer
 	 */
@@ -101,18 +110,41 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	/*
 	 *	Block memory registers
 	 */
-	reg [31:0]		data_block[0:1023];
+	//reg [31:0]		data_block[0:1023]; //TODO
+	reg[255:0] data_block[0:127];
 
 	/*
 	 *	wire assignments
 	 */
-	wire [9:0]		addr_buf_block_addr;
+	wire [6:0]		addr_buf_block_addr;
+	wire [2:0]		addr_buf_word_offset; //TODO
 	wire [1:0]		addr_buf_byte_offset;
 	
 	wire [31:0]		replacement_word;
 
-	assign			addr_buf_block_addr	= addr_buf[11:2];
+	assign			addr_buf_block_addr	= addr_buf[11:5]; //TODO
+	assign			addr_buf_word_offset = addr_buf[4:2]; //TODO
 	assign			addr_buf_byte_offset	= addr_buf[1:0];
+
+	/*
+	 *	Multiplexers to select word from line buffer //TODO
+	 */
+	wire[31:0] wbufmuxout1;
+	wire[31:0] wbufmuxout2;
+	wire[31:0] wbufmuxout3;
+	wire[31:0] wbufmuxout4;
+	wire[31:0] wbufmuxout5;
+	wire[31:0] wbufmuxout6;
+	
+	assign wbufmuxout1 = addr_buf_word_offset[0] ? line_buf[63:32] : line_buf[31:0];
+	assign wbufmuxout2 = addr_buf_word_offset[0] ? line_buf[127:96] : line_buf[95:64];
+	assign wbufmuxout3 = addr_buf_word_offset[0] ? line_buf[191:160] : line_buf[159:128];
+	assign wbufmuxout4 = addr_buf_word_offset[0] ? line_buf[255:224] : line_buf[223:192];
+	
+	assign wbufmuxout5 = addr_buf_word_offset[1] ? wbufmuxout2 : wbufmuxout1;
+	assign wbufmuxout6 = addr_buf_word_offset[1] ? wbufmuxout4 : wbufmuxout3;
+	
+	assign word_buf = addr_buf_word_offset[2] ? wbufmuxout6 : wbufmuxout5;
 
 	/*
 	 *	Regs for multiplexer output
@@ -177,6 +209,51 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	assign write_out2 = (write_select0) ? 32'b0 : write_data_buffer;
 	
 	assign replacement_word = (write_select1) ? write_out2 : write_out1;
+	
+	
+	/*
+	 *	Logic to generate replacement block for write instructions//TODO
+	 */
+	/*
+	 *	Word select decoder
+	 */
+	wire wdec_sig0;
+	wire wdec_sig1;
+	wire wdec_sig2;
+	wire wdec_sig3;
+	wire wdec_sig4;
+	wire wdec_sig5;
+	wire wdec_sig6;
+	wire wdec_sig7;
+
+	assign wdec_sig0 = (~addr_buf_word_offset[2]) & (~addr_buf_word_offset[1]) & (~addr_buf_word_offset[0]);
+	assign wdec_sig1 = (~addr_buf_word_offset[2]) & (~addr_buf_word_offset[1]) & (addr_buf_word_offset[0]);
+	assign wdec_sig2 = (~addr_buf_word_offset[2]) & (addr_buf_word_offset[1]) & (~addr_buf_word_offset[0]);
+	assign wdec_sig3 = (~addr_buf_word_offset[2]) & (addr_buf_word_offset[1]) & (addr_buf_word_offset[0]);
+	assign wdec_sig4 = (addr_buf_word_offset[2]) & (~addr_buf_word_offset[1]) & (~addr_buf_word_offset[0]);
+	assign wdec_sig5 = (addr_buf_word_offset[2]) & (~addr_buf_word_offset[1]) & (addr_buf_word_offset[0]);
+	assign wdec_sig6 = (addr_buf_word_offset[2]) & (addr_buf_word_offset[1]) & (~addr_buf_word_offset[0]);
+	assign wdec_sig7 = (addr_buf_word_offset[2]) & (addr_buf_word_offset[1]) & (addr_buf_word_offset[0]);
+	
+	wire[31:0] w0;
+	wire[31:0] w1;
+	wire[31:0] w2;
+	wire[31:0] w3;
+	wire[31:0] w4;
+	wire[31:0] w5;
+	wire[31:0] w6;
+	wire[31:0] w7;
+
+	assign w0 = (wdec_sig0==1'b1) ? replacement_word : line_buf[31:0];
+	assign w1 = (wdec_sig1==1'b1) ? replacement_word : line_buf[63:32];
+	assign w2 = (wdec_sig2==1'b1) ? replacement_word : line_buf[95:64];
+	assign w3 = (wdec_sig3==1'b1) ? replacement_word : line_buf[127:96];
+	assign w4 = (wdec_sig4==1'b1) ? replacement_word : line_buf[159:128];
+	assign w5 = (wdec_sig5==1'b1) ? replacement_word : line_buf[191:160];
+	assign w6 = (wdec_sig6==1'b1) ? replacement_word : line_buf[223:192];
+	assign w7 = (wdec_sig7==1'b1) ? replacement_word : line_buf[255:224];
+	
+	
 	/*
 	 *	Combinational logic for generating 32-bit read data
 	 */
@@ -219,7 +296,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	 *	modules in the design.
 	 */
 	initial begin
-		$readmemh("verilog/program.hex", data_block);
+		$readmemh("verilog/data.hex", data_block);
 		clk_stall = 0;
 	end
 
@@ -252,7 +329,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 			end
 
 			READ_BUFFER: begin
-				word_buf <= data_block[addr_buf_block_addr];
+				line_buf <= data_block[addr_buf_block_addr];
 				if(memread_buf==1'b1) begin
 					state <= READ;
 				end
@@ -269,7 +346,7 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 
 			WRITE: begin
 				clk_stall <= 0;
-				data_block[addr_buf_block_addr] <= replacement_word;
+				data_block[addr_buf_block_addr] <= {w7, w6, w5, w4, w3, w2, w1, w0};
 				state <= IDLE;
 			end
 
