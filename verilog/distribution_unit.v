@@ -19,7 +19,7 @@ module distribution_unit(
 	reg[255:0] dist_buffer;
 	
 	//test distribution, acting as placeholder
-	reg[255:0] distribution = 64'h000200140024000400502208111C12C0DC02A009001000000000000000000000;
+	reg[255:0] distribution = 256'h000200140024000400502208111C12C0DC02A009001000000000000000000000;
 	
 	/*initial begin
 		$readmemh("verilog/distribution.hex", distribution);
@@ -38,12 +38,13 @@ module distribution_unit(
 			
 			READSSR: begin
 				//connect to SPI module, retrive data
-				dist_buffer <= distribution[0];
+				dist_buffer <= distribution;
 				state <= DATA_OUT;
 			end
 			
 			DATA_OUT: begin
 				DU_result <= dist_buffer;
+				du_clk_stall <= 1'b0;
 				state <= IDLE;
 			end
 			
