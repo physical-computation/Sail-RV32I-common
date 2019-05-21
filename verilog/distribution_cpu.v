@@ -565,11 +565,17 @@ module cpu(
 	
 	wire[255:0] DWriteBack_Data;
 	
-	wire[255:0] EX_DFwdMuxOut;
-	wire[255:0] MEM_DFwdMuxOut;
+	wire[255:0] EX_DFwdMuxOut1;
+	wire[255:0] MEM_DFwdMuxOut1;
 	
-	wire EX_DFwdMuxSel;
-	wire MEM_DFwdMuxSel;
+	wire[255:0] EX_DFwdMuxOut2;
+	wire[255:0] MEM_DFwdMuxOut2;
+	
+	wire EX_DFwdMuxSel1;
+	wire MEM_DFwdMuxSel1;
+	
+	wire EX_DFwdMuxSel2;
+	wire MEM_DFwdMuxSel2;
 	
 	distReg distReg_inst0(
 		.clk(clk),
@@ -589,14 +595,14 @@ module cpu(
 		.clk(du_clk_in),
 		.DUCtrl(du_ctrl),
 		.rs1(regA_out), //[31:0]
-		.DU_input(EX_DFwdMuxOut), //[255:0]
+		.DU_input(EX_DFwdMuxOut1), //[255:0]
 		.DU_result(du_result), //[255:0]
 		.du_clk_stall(du_clk_stall)
 	);
 	
 	id_ex_dregs id_ex_dregs_inst0(
 		.clk(clk),
-		.data_in({EX_DFwdMuxOut, ID_dist_ctrl_signals}),
+		.data_in({EX_DFwdMuxOut2, ID_dist_ctrl_signals}),
 		.data_out(id_ex_dregs_out)
 	);
 	
@@ -614,7 +620,8 @@ module cpu(
 	
 	
 	DistributionForwardingUnit DFwdUnit_inst0(
-		.ID_sourceAddr(if_id_out[43:39]), //[4:0]
+		.ID_sourceAddr1(if_id_out[51:47]), //[4:0]
+		.ID_sourceAddr2(if_id_out[56:52]),
 		
 		.EX_DRegWrite(EX_dist_ctrl_signals[0]),
 		.EX_destRegAddr(id_ex_out[155:151]), //[4:0]
@@ -622,13 +629,19 @@ module cpu(
 		.MEM_DRegWrite(ex_mem_dregs_out[0]),
 		.MEM_destRegAddr(ex_mem_out[142:138]), //[4:0]
 		
-		.EX_DFwdMuxSel(EX_DFwdMuxSel),
-		.MEM_DFwdMuxSel(MEM_DFwdMuxSel)
+		.EX_DFwdMuxSel1(EX_DFwdMuxSel1),
+		.MEM_DFwdMuxSel1(MEM_DFwdMuxSel1),
+		
+		.EX_DFwdMuxSel2(EX_DFwdMuxSel2),
+		.MEM_DFwdMuxSel2(MEM_DFwdMuxSel2)
 	);
 	
-	//2 multiplexers for forwarding
-	assign EX_DFwdMuxOut = EX_DFwdMuxSel ? du_result : MEM_DFwdMuxOut;
-	assign MEM_DFwdMuxOut = MEM_DFwdMuxSel ? DWriteBack_Data : DReg_out;
+	//4 multiplexers for forwarding
+	assign EX_DFwdMuxOut1 = EX_DFwdMuxSel1 ? du_result : MEM_DFwdMuxOut1;
+	assign MEM_DFwdMuxOut1 = MEM_DFwdMuxSel1 ? DWriteBack_Data : DReg_out;
+	
+	assign EX_DFwdMuxOut2 = EX_DFwdMuxSel2 ? du_result : MEM_DFwdMuxOut2;
+	assign MEM_DFwdMuxOut2 = MEM_DFwdMuxSel2 ? DWriteBack_Data : DReg_out;
 	
 	//Multiplexer to select writeback data
 	assign DWriteBack_Data = ex_mem_dregs_out[1] ? DataMem_DistOut : ex_mem_dregs_out[257:2];
