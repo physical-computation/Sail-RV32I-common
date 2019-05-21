@@ -55,5 +55,5 @@ module distribution_unit(
 		endcase
 	end
 	
-endmodule;
+endmodule
 
