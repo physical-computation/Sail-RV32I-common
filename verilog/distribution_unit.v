@@ -19,12 +19,11 @@ module distribution_unit(
 	reg[255:0] dist_buffer;
 	
 	//test distribution, acting as placeholder
-	reg[255:0] distribution[0];
+	reg[255:0] distribution = 64'h000200140024000400502208111C12C0DC02A009001000000000000000000000;
 	
-	initial begin
+	/*initial begin
 		$readmemh("verilog/distribution.hex", distribution);
-	end
-	
+	end*/
 	
 	//state machine
 	always @(posedge clk) begin
