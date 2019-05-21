@@ -69,7 +69,7 @@ module control(
 	assign MemWrite = (~opcode[6]) & (opcode[5]) & (~opcode[4]) & (~opcode[3]);
 	assign MemRead = (~opcode[5]) & (~opcode[4]) & (~opcode[3]);
 	assign Branch = (opcode[6]) & (~opcode[4]) & (~opcode[2]);
-	assign ALUSrc = ((~opcode[6]) & (~opcode[5]) & opcode[2]) + ((~opcode[6]) & (~opcode[4]) & (~opcode[3])) + ((~opcode[6]) & (~opcode[5]) & opcode[4]);
+	assign ALUSrc = ((~opcode[6]) & (~opcode[5])) + ((~opcode[6]) & (~opcode[4]));
 	assign Jump = (opcode[6]) & (opcode[2]);
 	assign Jalr = (~opcode[4]) & (~opcode[3]) & (opcode[2]);
 	assign Lui = (~opcode[6]) & (opcode[5]) & (opcode[2]);
