@@ -242,6 +242,12 @@ module ALUControl(FuncCode, ALUCtl, Opcode);
 					default:
 						ALUCtl = `kSAIL_MICROARCHITECTURE_ALUCTL_6to0_ILLEGAL;
 				endcase
+			
+			7'b0001011: //LDST
+				ALUCtl = 7'b0000010;
+			
+			7'b0101011: //SDST
+				ALUCtl = 7'b0000010;
 
 			default:
 				ALUCtl = `kSAIL_MICROARCHITECTURE_ALUCTL_6to0_ILLEGAL;
