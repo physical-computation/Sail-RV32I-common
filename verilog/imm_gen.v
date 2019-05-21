@@ -67,7 +67,12 @@ module imm_gen(inst, imm);
 				imm = { {12{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0 };
 			4'b1100: //SB-type
 				imm = { {20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0 };
-			default : imm = { {21{inst[31]}}, inst[30:20] };
+			4'b0010: //I type, New LDST instruction
+				imm = { {21{inst[31]}}, inst[30:20] };
+			4'b0110: //S type, New SDST instruction
+				imm = { {21{inst[31]}}, inst[30:25], inst[11:7] };
+			default : 
+				imm = { {21{inst[31]}}, inst[30:20] };
 		endcase
 	end
 endmodule
