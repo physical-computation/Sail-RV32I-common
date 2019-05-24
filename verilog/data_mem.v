@@ -79,6 +79,11 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	reg [255:0]		line_buf; //TODO
 	
 	/*
+	 *	Buffer to store distribution input
+	 */
+	reg [255:0]		dist_in_buf;
+	
+	/*
 	 *	word buffer, selected from line buffer
 	 */
 	wire[31:0]		word_buf;
@@ -93,6 +98,8 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 	 */
 	reg			memread_buf;
 	reg			memwrite_buf;
+	reg			DMemWrite_buf;
+	reg			DMemRead_buf;
 
 	/*
 	 *	Buffers to store write data
@@ -323,25 +330,21 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 				write_data_buffer <= write_data;
 				addr_buf <= addr;
 				sign_mask_buf <= sign_mask;
-				
-				if(memwrite==1'b1 || memread==1'b1) begin
+				DMemWrite_buf <= DMemWrite;
+				DMemRead_buf <= DMemRead;
+				dist_in_buf <= dist_in;
+				if(memwrite==1'b1 || memread==1'b1 || DMemWrite==1'b1 || DMemRead==1'b1) begin
 					state <= READ_BUFFER;
 					clk_stall <= 1;
-				end
-				if(DMemWrite) begin
-					data_block[addr[11:5]] <= dist_in;
-				end
-				if(DMemRead) begin
-					dist_out <= data_block[addr[11:5]];
 				end
 			end
 
 			READ_BUFFER: begin
 				line_buf <= data_block[addr_buf_block_addr];
-				if(memread_buf==1'b1) begin
+				if(memread_buf==1'b1 || DMemRead_buf==1'b1) begin
 					state <= READ;
 				end
-				else if(memwrite_buf == 1'b1) begin
+				else if(memwrite_buf == 1'b1 || DMemWrite_buf==1'b1) begin
 					state <= WRITE;
 				end
 			end
@@ -349,12 +352,13 @@ module data_mem (clk, addr, write_data, memwrite, memread, sign_mask, read_data,
 			READ: begin
 				clk_stall <= 0;
 				read_data <= read_buf;
+				dist_out <= line_buf;
 				state <= IDLE;
 			end
 
 			WRITE: begin
 				clk_stall <= 0;
-				data_block[addr_buf_block_addr] <= {w7, w6, w5, w4, w3, w2, w1, w0};
+				data_block[addr_buf_block_addr] <= DMemWrite_buf ? dist_in_buf : {w7, w6, w5, w4, w3, w2, w1, w0};
 				state <= IDLE;
 			end
 
