@@ -46,7 +46,13 @@ module instruction_memory(addr, out);
 	input [31:0]		addr;
 	output [31:0]		out;
 
-	reg [31:0]		instruction_memory[0:2**10-1];
+	/*
+	 *	Size the instruction memory.
+	 *
+	 *	(Bad practice: The constant should be a `define).
+	 */
+
+	reg [31:0]		instruction_memory[0:2**12-1];
 
 	/*
 	 *	According to the "iCE40 SPRAM Usage Guide" (TN1314 Version 1.0), page 5:
