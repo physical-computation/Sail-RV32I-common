@@ -51,7 +51,6 @@ module instruction_memory(addr, out);
 	 *
 	 *	(Bad practice: The constant should be a `define).
 	 */
-
 	reg [31:0]		instruction_memory[0:2**12-1];
 
 	/*
