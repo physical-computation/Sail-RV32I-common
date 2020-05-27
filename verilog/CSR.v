@@ -39,7 +39,7 @@
 /*
  *	Description:
  *
- *		This module implements the control and status registers (CSRs) using the iCE40UP5K's single-port RAM (SPRAM)
+ *		This module implements the control and status registers (CSRs).
  */
 
 
